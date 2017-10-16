@@ -1,0 +1,25 @@
+{
+  "name": "ai-calender",
+  "version": "1.0.0",
+  "description": "A calender that based on your availability plans your projects",
+  "main": "app.js",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "ejs": "^2.5.7",
+    "express": "^4.16.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/servinlp/ai-calender.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/servinlp/ai-calender/issues"
+  },
+  "homepage": "https://github.com/servinlp/ai-calender#readme"
+}
