@@ -131,8 +131,17 @@ function listUpcomingEvents() {
 
 		agenda = response.result.items
 
-		const events = response.result.items
+		const events = response.result.items,
+			elWithDate = document.querySelectorAll( '[data-date]' ),
+			elArr = Array.from( elWithDate ),
+			dates = elArr.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
+			// dates = elArr.map( d => new Date( d.getAttribute( 'data-date' ) ) )
+
+		console.log( dates )
+
 		appendPre( 'Upcoming events:' )
+
+		console.log( events )
 
 		if ( events.length > 0 ) {
 
@@ -147,6 +156,18 @@ function listUpcomingEvents() {
 
 				}
 
+				const whenDate = moment( when )
+					day = whenDate.format( 'DD-MM-YYYY' ),
+					match = dates.filter( d => d === day )[ 0 ]
+
+				if ( match ) {
+
+					console.log( whenDate )
+					console.log( event )
+					addCallItem( event )
+
+				}
+
 				appendPre(event.summary + ' ( ' + when + ')' )
 
 			}
@@ -158,6 +179,31 @@ function listUpcomingEvents() {
 		}
 
 	})
+
+}
+
+function addCallItem( obj ) {
+
+	const div = document.createElement( 'div' ),
+		startTime = obj.start.dateTime || obj.start.date,
+		startToDate = moment( new Date( startTime ) ),
+		target = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` )
+
+	console.log( target )
+
+	div.textContent = obj.summary
+
+	// div.classList.add( `color${obj.colorId}` )
+	div.classList.add( 'item' )
+	div.setAttribute( 'colorId', obj.colorId )
+	div.setAttribute( 'status', obj.status )
+
+	div.style.top = `calc( ( 200vh / 23 ) * ${ startToDate.hours() - 1 } )`
+	div.style.height = `calc((200vh / 23) * 1)`
+	div.style.width = '90%'
+	div.style.backgroundColor = '#0057e7'
+
+	target.appendChild( div )
 
 }
 
