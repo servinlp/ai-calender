@@ -11,8 +11,16 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar'
 const authorizeButton = document.querySelector( '#authorize-button' )
 const signoutButton = document.querySelector( '#signout-button' )
 const addNew = document.querySelector( '#add-new' )
+const profileButton = document.querySelector( '#profile-button' )
 const saveCal = document.querySelector( '#save-cal' )
-
+const initialAnimation = document.querySelector('#initialAnimation');
+const deadlineOverlay = document.querySelector('.deadline-overlay');
+const deadlineOverlayBackground = document.querySelector('.deadline-overlay .overlay-background');
+const deadlineOverlayClose = document.querySelector('.deadline-overlay #close');
+const profileOverlay = document.querySelector('.profile-overlay');
+const profileOverlayBackground = document.querySelector('.profile-overlay .overlay-background');
+const profileOverlayClose = document.querySelector('.profile-overlay #close');
+console.log(deadlineOverlayClose);
 let agenda
 
 /**
@@ -43,8 +51,8 @@ function initClient() {
 		updateSigninStatus( gapi.auth2.getAuthInstance().isSignedIn.get() )
 		authorizeButton.addEventListener( 'click', handleAuthClick )
 		signoutButton.addEventListener( 'click', handleSignoutClick )
-		addNew.addEventListener( 'click', addANewItem )
-		saveCal.addEventListener( 'click', saveCalendar )
+		// addNew.addEventListener( 'click', addANewItem )
+		// saveCal.addEventListener( 'click', saveCalendar )
 
 	})
 
@@ -54,26 +62,28 @@ function initClient() {
 *  Called when the signed in status changes, to update the UI
 *  appropriately. After a sign-in, the API is called.
 */
+
 function updateSigninStatus( isSignedIn ) {
 
 	if ( isSignedIn ) {
 
 		authorizeButton.style.display = 'none'
 		signoutButton.style.display = 'block'
+
+		document.body.style = "overflow: auto;"
+		initialAnimation.style = "animation: .7s ease-out .5s 1 forwards slideOut"
 		listUpcomingEvents()
 
 	} else {
-
 		authorizeButton.style.display = 'block'
 		signoutButton.style.display = 'none'
-
 	}
-
 }
 
 /**
 *  Sign in the user upon button click.
 */
+
 function handleAuthClick( event ) {
 
 	gapi.auth2.getAuthInstance().signIn()
@@ -213,128 +223,36 @@ function saveCalendar() {
 
 }
 
-document.querySelectorAll('.time-of-day').forEach(function(time, i){
-	console.log(i)
-})
-// const agenda = document.querySelector('.agenda');
-//Rewrote https://tympanus.net/Development/CreativeGooeyEffects/menu.html so JQuery isn't needed anymore
-const menuItem = document.querySelectorAll('.menu-item');
-const menuToggleButton = document.querySelector(".menu-toggle-button");
-const menuToggleIcon = document.querySelector(".menu-toggle-icon");
+const deadlineSubmit = document.querySelector('.deadline-submit');
+const deadlineTitle = document.querySelector('#deadline-title');
+const deadlineEndDate = document.querySelector('#deadline-enddate');
+const deadlineHours = document.querySelector('#deadline-hours');
+const deadLineParameters = [];
+deadlineSubmit.addEventListener('click', getDeadline)
 
-const menuItemNum = menuItem.length;
-let angle = 70;
-const distance = 80;
-let startingAngle = 145 + ( -angle / 2 );
-let slice = angle / ( menuItemNum - 1 );
-let on = false;
+const wakeUpTime = '08:00';
+const sleepTime = '23:00';
 
-menuItem.forEach(function(item, i){
-	angle = startingAngle + ( slice * i );
-	item.style.transform = "rotate("+(angle)+"deg)";
-	item.querySelector(".menu-item-icon").style.transform = "rotate("+(-angle)+"deg)"
-})
+function getDeadline() {
+	deadLineParameters.push(deadlineTitle.value, deadlineEndDate.value, deadlineHours.value)
+	console.log(deadLineParameters);
 
-function closeMenuToggle() {
-	TweenMax.to( menuToggleIcon, 0.1, {
-		scale: 1
-	})
+	showHidePopup(deadlineOverlay);
 }
 
-document.addEventListener('mouseup', closeMenuToggle )
-
-document.addEventListener('touchend', closeMenuToggle )
-
-menuToggleButton.addEventListener('mousedown', pressHandler )
-menuToggleButton.addEventListener('touchstart', function(event) {
-	pressHandler();
-	event.preventDefault();
-	event.stopPropagation();
-})
-
-function pressHandler(event){
-	TweenMax.to( menuToggleIcon, 0.1, {
-		scale: 1.5
-	})
-	on = !on;
-	TweenMax.to(menuToggleButton.querySelector('.menu-toggle-icon'),0.4,{
-		transformOrigin: "50% 50%",
-		rotation: on ? 45 : 0,
-		ease:Quint.easeInOut
+let deadlineOverlayGroup = [];
+deadlineOverlayGroup.push(addNew, deadlineOverlayClose, deadlineOverlayBackground)
+deadlineOverlayGroup.forEach(function(elem){
+	elem.addEventListener('click', function(){
+		showHidePopup(deadlineOverlay);
 	});
+})
+let profileOverlayGroup = [];
+profileOverlayGroup.push(profileButton, profileOverlayClose, profileOverlayBackground)
+profileOverlayGroup.forEach(function(elem){
+	elem.addEventListener('click', function(){
+		showHidePopup(profileOverlay);
+	});
+})
 
-	on ? openMenu() : closeMenu();
-}
-
-function openMenu(){
-	menuItem.forEach(function(item, i){
-		let delay = i * 0.08;
-		let $bounce = item.querySelector(".menu-item-bounce");
-		TweenMax.fromTo( $bounce, 0.2, {
-			transformOrigin:"50% 50%"
-		},{
-			delay: delay,
-			scaleX: 0.9,
-			scaleY: 1.2,
-			ease: Quad.easeInOut,
-			onComplete: function(){
-				TweenMax.to( $bounce, 0.15, {
-					scaleY: 0.8,
-					ease: Quad.easeInOut,
-					onComplete: function(){
-						TweenMax.to( $bounce, 3, {
-							scaleY: .95,
-							scaleX: .95,
-							ease: Elastic.easeOut,
-							easeParams: [1.1,0.12]
-						})
-					}
-				})
-			}
-		});
-		TweenMax.to(item.querySelector(".menu-item-button"), 0.5, {
-			delay: delay,
-			y: distance,
-			ease: Quint.easeInOut
-		});
-	})
-}
-
-function closeMenu(){
-	menuItem.forEach(function(item, i){
-		let delay = i * 0.08;
-		let $bounce= item.querySelector(".menu-item-bounce");
-		TweenMax.fromTo( $bounce, 0.2, {
-			transformOrigin:"50% 50%"
-		},{
-			delay: delay,
-			scaleX: 1,
-			scaleY: 0.8,
-			ease: Quad.easeInOut,
-			onComplete: function(){
-				TweenMax.to( $bounce, 0.15, {
-					scaleY: 1.2,
-					ease: Quad.easeInOut,
-					onComplete: function(){
-						TweenMax.to( $bounce, 3, {
-							scaleY: 1,
-							ease: Elastic.easeOut,
-							easeParams: [1.1,0.12]
-						})
-					}
-				})
-			}
-		});
-		TweenMax.to(item.querySelector(".menu-item-button"), 0.2, {
-			delay: delay,
-			y: 0,
-			ease: Quint.easeIn
-		});
-	})
-}
-
-function tweenReady() {
-
-	TweenMax.globalTimeScale( 1 )
-	
-}
+// const agenda = document.querySelector('.agenda');

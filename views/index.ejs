@@ -8,18 +8,28 @@
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 	<link href="/style.css" rel="stylesheet">
 
-	<script>
+	<!-- <script>
 		const week = <%= week %>
-	</script>
+	</script> -->
 
   </head>
   <body>
-
+  <div id="initialAnimation">
+  	<h2>Log in with your Google account</h2>
+    <!-- <button id="authorize-button" style="display: none;">
+      <span class="icon"></span>
+      <span class="buttonText">Sign in</span>
+    </button> -->
+    <div id="authorize-button" style="display: none;">
+      <span class="icon"></span>
+      <div id="label">Sign in</div>
+    </div>
+    <span class="shameless-plug">made by <a href="https://level30wizards.com" target="_blank" class="lvl30wzrds">Level30Wizards</a> for <span class="you">you</span></span>
+  </div>
     <!--Add buttons to initiate auth sequence and sign out-->
-    <button id="authorize-button" style="display: none;">Authorize</button>
-    <button id="signout-button" style="display: none;">Sign Out</button>
-	<button id="add-new">Add new item to calender</button>
-	<button id="save-cal">Save calendar</button>
+    <!-- <button id="signout-button" style="display: none;">Sign Out</button> -->
+	<!-- <button id="add-new">Add new item to calender</button> -->
+	<!-- <button id="save-cal">Save calendar</button> -->
 
     <pre id="content"></pre>
 
@@ -27,14 +37,39 @@
 
 
 	<script async defer src="/moment.js"></script>
-	<script async defer src="/scripts.js"></script>
+	<!-- <script async defer src="/scripts.js"></script> -->
 
-	<script async defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"
-		onload="this.onload=function(){};tweenReady()"></script>
+	<script data-tween async defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
 
-    <script async defer src="https://apis.google.com/js/api.js"
-      onload="this.onload=function(){};handleClientLoad()"
-      onreadystatechange="if (this.readyState === 'complete') this.onload()">
-    </script>
+  <!-- <script async defer src="https://apis.google.com/js/api.js"
+    onload="this.onload=function(){};handleClientLoad()"
+    onreadystatechange="if (this.readyState === 'complete') this.onload()">
+  </script> -->
+
+  <script>
+    const tween = document.querySelector( '[data-tween]' )
+    tween.addEventListener( 'load', () => {
+
+      const script = document.createElement( 'script' ),
+        magic = document.createElement( 'script' ),
+        g = document.createElement( 'script' )
+
+      magic.setAttribute( 'src', '/magic.js' )
+      script.setAttribute( 'src', '/scripts.js' )
+      g.setAttribute( 'src', 'https://apis.google.com/js/api.js' )
+
+      g.addEventListener( 'load', () => {
+        handleClientLoad()
+      })
+      g.addEventListener( 'readystatechange', function() {
+        if (this.readyState === 'complete') handleClientLoad()
+      })
+
+      document.body.appendChild( magic )
+      document.body.appendChild( script )
+      document.body.appendChild( g )
+
+    })
+  </script>
   </body>
 </html>

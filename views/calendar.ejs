@@ -58,20 +58,20 @@
 	<div class="menu">
 		<ul class="menu-items">
 			<li class="menu-item">
-				<button class="menu-item-button">
-					<i class="menu-item-icon icon icon-deadline"></i>
+				<button id="add-new" class="menu-item-button">
+					<i class="menu-item-icon icon icon-deadline">+</i>
 				</button>
 				<div class="menu-item-bounce"></div>
 			</li>
 			<li class="menu-item">
-				<button class="menu-item-button">
-					<i class="menu-item-icon icon icon-meeting"></i>
+				<button id="profile-button" class="menu-item-button">
+					<i class="menu-item-icon icon icon-profile"></i>
 				</button>
 				<div class="menu-item-bounce"></div>
 			</li>
 		</ul>
 		<button class="menu-toggle-button">
-			<i class="menu-toggle-icon">+</i>
+			<i class="menu-toggle-icon">&#9776;</i>
 		</button>
 	</div>
 	<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -83,5 +83,35 @@
 			</filter>
 		</defs>
 	</svg>
+</section>
 
+<section data-show="false" class="overlay deadline-overlay">
+	<div class="overlay-background"></div>
+	<div class="overlay__modal">
+		<span id="close">X</span>
+		<h2>New Deadline</h2>
+		<label for="deadline-title">
+			Title of your deadline
+			<input type="text" id="deadline-title" placeholder="your new deadline">
+		</label>
+		<label for="deadline-enddate">
+			End date of your deadline
+			<input type="date" id="deadline-enddate">
+		</label>
+		<label for="deadline-hours">
+			Amount of hours needed
+			<input type="number" id="deadline-hours" placeholder="20">
+		</label>
+		<button class="deadline-submit" type="submit">Plan me!</button>
+	</div>
+</section>
+
+<section data-show="false" class="overlay profile-overlay">
+	<div class="overlay-background"></div>
+	<div class="overlay__modal">
+		<span id="close">X</span>
+		<h2>Profile</h2>
+		<button class="profile-submit">Preferences</button>
+		<button id="signout-button" class="profile-submit" style="display: none;">Sign Out</button>
+	</div>
 </section>
