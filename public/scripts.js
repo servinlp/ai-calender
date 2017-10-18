@@ -11,6 +11,9 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar'
 const authorizeButton = document.querySelector( '#authorize-button' )
 const signoutButton = document.querySelector( '#signout-button' )
 const addNew = document.querySelector( '#add-new' )
+const saveCal = document.querySelector( '#save-cal' )
+
+let agenda
 
 /**
 *  On load, called to load the auth2 library and API client library.
@@ -41,6 +44,7 @@ function initClient() {
 		authorizeButton.addEventListener( 'click', handleAuthClick )
 		signoutButton.addEventListener( 'click', handleSignoutClick )
 		addNew.addEventListener( 'click', addANewItem )
+		saveCal.addEventListener( 'click', saveCalendar )
 
 	})
 
@@ -106,8 +110,6 @@ function appendPre( message ) {
 */
 function listUpcomingEvents() {
 
-	console.log( gapi.client )
-	console.log( (moment().add( 3, 'days' ).add(1, 'hour')._d).toISOString() )
 	gapi.client.calendar.events.list({
 		'calendarId': 'primary',
 		'timeMin': ( new Date() ).toISOString(),
@@ -116,6 +118,8 @@ function listUpcomingEvents() {
 		'maxResults': 10,
 		'orderBy': 'startTime'
 	}).then( response => {
+
+		agenda = response.result.items
 
 		const events = response.result.items
 		appendPre( 'Upcoming events:' )
@@ -167,6 +171,39 @@ function addANewItem() {
 	}).then( response => {
 
 		console.log( response )
+
+	}).catch( err => {
+
+		console.log( err )
+
+	})
+
+}
+
+function saveCalendar() {
+
+	console.log( agenda )
+
+	const obj = {
+		calendar: agenda
+	},
+	myHeaders = new Headers()
+
+	myHeaders.append( 'Content-Type', 'application/json' )
+
+	fetch( '/setCalendar', {
+		method: 'POST',
+		headers: myHeaders,
+		body: JSON.stringify( obj ),
+		credentials: 'same-origin'
+	}).then( response => {
+
+		console.log( response )
+		return response.json()
+
+	}).then( res => {
+
+		console.log( res )
 
 	}).catch( err => {
 
