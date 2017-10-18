@@ -11,8 +11,16 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar'
 const authorizeButton = document.querySelector( '#authorize-button' )
 const signoutButton = document.querySelector( '#signout-button' )
 const addNew = document.querySelector( '#add-new' )
+const profileButton = document.querySelector( '#profile-button' )
 const saveCal = document.querySelector( '#save-cal' )
-
+const initialAnimation = document.querySelector('#initialAnimation');
+const deadlineOverlay = document.querySelector('.deadline-overlay');
+const deadlineOverlayBackground = document.querySelector('.deadline-overlay .overlay-background');
+const deadlineOverlayClose = document.querySelector('.deadline-overlay #close');
+const profileOverlay = document.querySelector('.profile-overlay');
+const profileOverlayBackground = document.querySelector('.profile-overlay .overlay-background');
+const profileOverlayClose = document.querySelector('.profile-overlay #close');
+console.log(deadlineOverlayClose);
 let agenda
 
 /**
@@ -43,8 +51,8 @@ function initClient() {
 		updateSigninStatus( gapi.auth2.getAuthInstance().isSignedIn.get() )
 		authorizeButton.addEventListener( 'click', handleAuthClick )
 		signoutButton.addEventListener( 'click', handleSignoutClick )
-		addNew.addEventListener( 'click', addANewItem )
-		saveCal.addEventListener( 'click', saveCalendar )
+		// addNew.addEventListener( 'click', addANewItem )
+		// saveCal.addEventListener( 'click', saveCalendar )
 
 	})
 
@@ -54,26 +62,28 @@ function initClient() {
 *  Called when the signed in status changes, to update the UI
 *  appropriately. After a sign-in, the API is called.
 */
+
 function updateSigninStatus( isSignedIn ) {
 
 	if ( isSignedIn ) {
 
 		authorizeButton.style.display = 'none'
 		signoutButton.style.display = 'block'
+
+		document.body.style = "overflow: auto;"
+		initialAnimation.style = "animation: .7s ease-out .5s 1 forwards slideOut"
 		listUpcomingEvents()
 
 	} else {
-
 		authorizeButton.style.display = 'block'
 		signoutButton.style.display = 'none'
-
 	}
-
 }
 
 /**
 *  Sign in the user upon button click.
 */
+
 function handleAuthClick( event ) {
 
 	gapi.auth2.getAuthInstance().signIn()
@@ -121,17 +131,8 @@ function listUpcomingEvents() {
 
 		agenda = response.result.items
 
-		const events = response.result.items,
-			elWithDate = document.querySelectorAll( '[data-date]' ),
-			elArr = Array.from( elWithDate ),
-			dates = elArr.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
-			// dates = elArr.map( d => new Date( d.getAttribute( 'data-date' ) ) )
-
-		console.log( dates )
-
+		const events = response.result.items
 		appendPre( 'Upcoming events:' )
-
-		console.log( events )
 
 		if ( events.length > 0 ) {
 
@@ -146,18 +147,6 @@ function listUpcomingEvents() {
 
 				}
 
-				const whenDate = moment( when )
-					day = whenDate.format( 'DD-MM-YYYY' ),
-					match = dates.filter( d => d === day )[ 0 ]
-
-				if ( match ) {
-
-					console.log( whenDate )
-					console.log( event )
-					addCallItem( event )
-
-				}
-
 				appendPre(event.summary + ' ( ' + when + ')' )
 
 			}
@@ -169,31 +158,6 @@ function listUpcomingEvents() {
 		}
 
 	})
-
-}
-
-function addCallItem( obj ) {
-
-	const div = document.createElement( 'div' ),
-		startTime = obj.start.dateTime || obj.start.date,
-		startToDate = moment( new Date( startTime ) ),
-		target = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` )
-
-	console.log( target )
-
-	div.textContent = obj.summary
-
-	// div.classList.add( `color${obj.colorId}` )
-	div.classList.add( 'item' )
-	div.setAttribute( 'colorId', obj.colorId )
-	div.setAttribute( 'status', obj.status )
-
-	div.style.top = `calc( ( 200vh / 23 ) * ${ startToDate.hours() - 1 } )`
-	div.style.height = `calc((200vh / 23) * 1)`
-	div.style.width = '90%'
-	div.style.backgroundColor = '#0057e7'
-
-	target.appendChild( div )
 
 }
 
@@ -259,129 +223,36 @@ function saveCalendar() {
 
 }
 
-// document.querySelectorAll('.time-of-day').forEach(function(time, i){
-// 	console.log(i)
-// })
+const deadlineSubmit = document.querySelector('.deadline-submit');
+const deadlineTitle = document.querySelector('#deadline-title');
+const deadlineEndDate = document.querySelector('#deadline-enddate');
+const deadlineHours = document.querySelector('#deadline-hours');
+const deadLineParameters = [];
+deadlineSubmit.addEventListener('click', getDeadline)
+
+const wakeUpTime = '08:00';
+const sleepTime = '23:00';
+
+function getDeadline() {
+	deadLineParameters.push(deadlineTitle.value, deadlineEndDate.value, deadlineHours.value)
+	console.log(deadLineParameters);
+
+	showHidePopup(deadlineOverlay);
+}
+
+let deadlineOverlayGroup = [];
+deadlineOverlayGroup.push(addNew, deadlineOverlayClose, deadlineOverlayBackground)
+deadlineOverlayGroup.forEach(function(elem){
+	elem.addEventListener('click', function(){
+		showHidePopup(deadlineOverlay);
+	});
+})
+let profileOverlayGroup = [];
+profileOverlayGroup.push(profileButton, profileOverlayClose, profileOverlayBackground)
+profileOverlayGroup.forEach(function(elem){
+	elem.addEventListener('click', function(){
+		showHidePopup(profileOverlay);
+	});
+})
 
 // const agenda = document.querySelector('.agenda');
-//Rewrote https://tympanus.net/Development/CreativeGooeyEffects/menu.html so JQuery isn't needed anymore
-const menuItem = document.querySelectorAll('.menu-item');
-const menuToggleButton = document.querySelector(".menu-toggle-button");
-const menuToggleIcon = document.querySelector(".menu-toggle-icon");
-
-const menuItemNum = menuItem.length;
-let angle = 70;
-const distance = 80;
-let startingAngle = 145 + ( -angle / 2 );
-let slice = angle / ( menuItemNum - 1 );
-let on = false;
-
-menuItem.forEach(function(item, i){
-	angle = startingAngle + ( slice * i );
-	item.style.transform = "rotate("+(angle)+"deg)";
-	item.querySelector(".menu-item-icon").style.transform = "rotate("+(-angle)+"deg)"
-})
-
-function closeMenuToggle() {
-	TweenMax.to( menuToggleIcon, 0.1, {
-		scale: 1
-	})
-}
-
-document.addEventListener('mouseup', closeMenuToggle )
-
-document.addEventListener('touchend', closeMenuToggle )
-
-menuToggleButton.addEventListener('mousedown', pressHandler )
-menuToggleButton.addEventListener('touchstart', function(event) {
-	pressHandler();
-	event.preventDefault();
-	event.stopPropagation();
-})
-
-function pressHandler(event){
-	TweenMax.to( menuToggleIcon, 0.1, {
-		scale: 1.5
-	})
-	on = !on;
-	TweenMax.to(menuToggleButton.querySelector('.menu-toggle-icon'),0.4,{
-		transformOrigin: "50% 50%",
-		rotation: on ? 45 : 0,
-		ease:Quint.easeInOut
-	});
-
-	on ? openMenu() : closeMenu();
-}
-
-function openMenu(){
-	menuItem.forEach(function(item, i){
-		let delay = i * 0.08;
-		let $bounce = item.querySelector(".menu-item-bounce");
-		TweenMax.fromTo( $bounce, 0.2, {
-			transformOrigin:"50% 50%"
-		},{
-			delay: delay,
-			scaleX: 0.9,
-			scaleY: 1.2,
-			ease: Quad.easeInOut,
-			onComplete: function(){
-				TweenMax.to( $bounce, 0.15, {
-					scaleY: 0.8,
-					ease: Quad.easeInOut,
-					onComplete: function(){
-						TweenMax.to( $bounce, 3, {
-							scaleY: .95,
-							scaleX: .95,
-							ease: Elastic.easeOut,
-							easeParams: [1.1,0.12]
-						})
-					}
-				})
-			}
-		});
-		TweenMax.to(item.querySelector(".menu-item-button"), 0.5, {
-			delay: delay,
-			y: distance,
-			ease: Quint.easeInOut
-		});
-	})
-}
-
-function closeMenu(){
-	menuItem.forEach(function(item, i){
-		let delay = i * 0.08;
-		let $bounce= item.querySelector(".menu-item-bounce");
-		TweenMax.fromTo( $bounce, 0.2, {
-			transformOrigin:"50% 50%"
-		},{
-			delay: delay,
-			scaleX: 1,
-			scaleY: 0.8,
-			ease: Quad.easeInOut,
-			onComplete: function(){
-				TweenMax.to( $bounce, 0.15, {
-					scaleY: 1.2,
-					ease: Quad.easeInOut,
-					onComplete: function(){
-						TweenMax.to( $bounce, 3, {
-							scaleY: 1,
-							ease: Elastic.easeOut,
-							easeParams: [1.1,0.12]
-						})
-					}
-				})
-			}
-		});
-		TweenMax.to(item.querySelector(".menu-item-button"), 0.2, {
-			delay: delay,
-			y: 0,
-			ease: Quint.easeIn
-		});
-	})
-}
-
-function tweenReady() {
-
-	TweenMax.globalTimeScale( 1 )
-
-}
