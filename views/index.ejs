@@ -3,6 +3,15 @@
   <head>
     <title>AI Calender</title>
     <meta charset='utf-8' />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<link href="/style.css" rel="stylesheet">
+
+	<script>
+		const week = <%= week %>
+	</script>
+
   </head>
   <body>
 
@@ -14,8 +23,14 @@
 
     <pre id="content"></pre>
 
+	<%- include( 'calendar' ) %>
+
+
 	<script async defer src="/moment.js"></script>
-    <script async defer src="/scripts.js"></script>
+	<script async defer src="/scripts.js"></script>
+
+	<script async defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"
+		onload="this.onload=function(){};tweenReady()"></script>
 
     <script async defer src="https://apis.google.com/js/api.js"
       onload="this.onload=function(){};handleClientLoad()"

@@ -212,3 +212,129 @@ function saveCalendar() {
 	})
 
 }
+
+document.querySelectorAll('.time-of-day').forEach(function(time, i){
+	console.log(i)
+})
+// const agenda = document.querySelector('.agenda');
+//Rewrote https://tympanus.net/Development/CreativeGooeyEffects/menu.html so JQuery isn't needed anymore
+const menuItem = document.querySelectorAll('.menu-item');
+const menuToggleButton = document.querySelector(".menu-toggle-button");
+const menuToggleIcon = document.querySelector(".menu-toggle-icon");
+
+const menuItemNum = menuItem.length;
+let angle = 70;
+const distance = 80;
+let startingAngle = 145 + ( -angle / 2 );
+let slice = angle / ( menuItemNum - 1 );
+let on = false;
+
+menuItem.forEach(function(item, i){
+	angle = startingAngle + ( slice * i );
+	item.style.transform = "rotate("+(angle)+"deg)";
+	item.querySelector(".menu-item-icon").style.transform = "rotate("+(-angle)+"deg)"
+})
+
+function closeMenuToggle() {
+	TweenMax.to( menuToggleIcon, 0.1, {
+		scale: 1
+	})
+}
+
+document.addEventListener('mouseup', closeMenuToggle )
+
+document.addEventListener('touchend', closeMenuToggle )
+
+menuToggleButton.addEventListener('mousedown', pressHandler )
+menuToggleButton.addEventListener('touchstart', function(event) {
+	pressHandler();
+	event.preventDefault();
+	event.stopPropagation();
+})
+
+function pressHandler(event){
+	TweenMax.to( menuToggleIcon, 0.1, {
+		scale: 1.5
+	})
+	on = !on;
+	TweenMax.to(menuToggleButton.querySelector('.menu-toggle-icon'),0.4,{
+		transformOrigin: "50% 50%",
+		rotation: on ? 45 : 0,
+		ease:Quint.easeInOut
+	});
+
+	on ? openMenu() : closeMenu();
+}
+
+function openMenu(){
+	menuItem.forEach(function(item, i){
+		let delay = i * 0.08;
+		let $bounce = item.querySelector(".menu-item-bounce");
+		TweenMax.fromTo( $bounce, 0.2, {
+			transformOrigin:"50% 50%"
+		},{
+			delay: delay,
+			scaleX: 0.9,
+			scaleY: 1.2,
+			ease: Quad.easeInOut,
+			onComplete: function(){
+				TweenMax.to( $bounce, 0.15, {
+					scaleY: 0.8,
+					ease: Quad.easeInOut,
+					onComplete: function(){
+						TweenMax.to( $bounce, 3, {
+							scaleY: .95,
+							scaleX: .95,
+							ease: Elastic.easeOut,
+							easeParams: [1.1,0.12]
+						})
+					}
+				})
+			}
+		});
+		TweenMax.to(item.querySelector(".menu-item-button"), 0.5, {
+			delay: delay,
+			y: distance,
+			ease: Quint.easeInOut
+		});
+	})
+}
+
+function closeMenu(){
+	menuItem.forEach(function(item, i){
+		let delay = i * 0.08;
+		let $bounce= item.querySelector(".menu-item-bounce");
+		TweenMax.fromTo( $bounce, 0.2, {
+			transformOrigin:"50% 50%"
+		},{
+			delay: delay,
+			scaleX: 1,
+			scaleY: 0.8,
+			ease: Quad.easeInOut,
+			onComplete: function(){
+				TweenMax.to( $bounce, 0.15, {
+					scaleY: 1.2,
+					ease: Quad.easeInOut,
+					onComplete: function(){
+						TweenMax.to( $bounce, 3, {
+							scaleY: 1,
+							ease: Elastic.easeOut,
+							easeParams: [1.1,0.12]
+						})
+					}
+				})
+			}
+		});
+		TweenMax.to(item.querySelector(".menu-item-button"), 0.2, {
+			delay: delay,
+			y: 0,
+			ease: Quint.easeIn
+		});
+	})
+}
+
+function tweenReady() {
+
+	TweenMax.globalTimeScale( 1 )
+	
+}
