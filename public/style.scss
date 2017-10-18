@@ -10,6 +10,7 @@ $lightBlue: #4d90fe;
 body {
 	font-size: 1em;
 	font-family: 'Open Sans', sans-serif;
+	margin: 0; padding: 0;
 }
 
 i {
@@ -20,7 +21,8 @@ i {
 	display: flex;
 	min-height: $agendaHeight;
 	width: 100%;
-	overflow: hidden;
+	overflow-x: hidden;
+	padding-bottom: calc(#{$blockHeight} * 2);
 	&_time-of-day {
 		width: $timeOfDayWidth;
 		padding: 0;
@@ -41,9 +43,9 @@ i {
 
 			transform: translateY(100%);
 			z-index: 1;
-			&:first-of-type {
-				border-top: 1px solid rgba(0,0,0,0.1);
-			}
+			// &:first-of-type {
+			// 	border-top: 1px solid rgba(0,0,0,0.1);
+			// }
 			&::after {
 				content: "";
 				display: block;
@@ -55,6 +57,11 @@ i {
 				left: 0;
 				z-index: 2;
 			}
+			&:last-of-type {
+				&::after {
+					display: none;
+				}
+			}
 		}
 	}
 	&_date-row {
@@ -63,6 +70,7 @@ i {
 		justify-content: space-around;
 		position: fixed;
 		right: 0;
+		top: 0;
 		background-color: #FFF;
 		z-index: 2;
 		.day {
@@ -85,11 +93,12 @@ i {
 				font-size: .8em;
 				display: block;
 			}
-			&:last-of-type {
-				border-right: 1px solid rgba(0,0,0,0.1);
-			}
+			// &:last-of-type {
+			// 	// border-right: 1px solid rgba(0,0,0,0.1);
+			// }
 			&:first-of-type {
-				border-left: px solid rgba(0,0,0,.3);
+				border-left: 0;
+				// padding-left: 1px;
 			}
 		}
 		.active {
@@ -114,7 +123,7 @@ i {
 			padding: 0;
 			margin: 0;
 			border-left: 1px solid rgba(0,0,0,0.1);
-			border-bottom: 1px solid rgba(0,0,0,0.1);
+			// border-bottom: 1px solid rgba(0,0,0,0.1);
 			background-color: #FFF;
 			&:first-of-type {
 				border-left: none;
@@ -162,7 +171,9 @@ i {
 	min-height: 4em;
 	height: 10vh;
 	padding: 0 6% 0 5%;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 	.prev, .next {
+		font-size: 1em;
 		min-width: 6em;
 		width: 20%;
 		height: 3em;
@@ -319,7 +330,7 @@ i {
 		position: absolute;
     bottom: .5em;
     transform: translateX(-50%);
-		font: .8em 'Open Sans';
+		font: .8em 'Roboto';
 		.you {
 			font-weight: 600;
 		}

@@ -3,7 +3,9 @@
 
 body {
   font-size: 1em;
-  font-family: 'Open Sans', sans-serif; }
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+  padding: 0; }
 
 i {
   font-style: normal; }
@@ -12,7 +14,8 @@ i {
   display: flex;
   min-height: 200vh;
   width: 100%;
-  overflow: hidden; }
+  overflow-x: hidden;
+  padding-bottom: calc(calc(200vh / 23) * 2); }
   .agenda_time-of-day {
     width: 2.75em;
     padding: 0;
@@ -30,8 +33,6 @@ i {
       height: calc(100% / 23);
       transform: translateY(100%);
       z-index: 1; }
-      .agenda_time-of-day .time-of-day:first-of-type {
-        border-top: 1px solid rgba(0, 0, 0, 0.1); }
       .agenda_time-of-day .time-of-day::after {
         content: "";
         display: block;
@@ -42,12 +43,15 @@ i {
         bottom: -1px;
         left: 0;
         z-index: 2; }
+      .agenda_time-of-day .time-of-day:last-of-type::after {
+        display: none; }
   .agenda_date-row {
     display: flex;
     width: calc(100% - 2.75em);
     justify-content: space-around;
     position: fixed;
     right: 0;
+    top: 0;
     background-color: #FFF;
     z-index: 2; }
     .agenda_date-row .day {
@@ -68,10 +72,8 @@ i {
       .agenda_date-row .day small {
         font-size: .8em;
         display: block; }
-      .agenda_date-row .day:last-of-type {
-        border-right: 1px solid rgba(0, 0, 0, 0.1); }
       .agenda_date-row .day:first-of-type {
-        border-left: px solid rgba(0, 0, 0, 0.3); }
+        border-left: 0; }
     .agenda_date-row .active {
       color: #0057e7; }
   .agenda_time-row {
@@ -87,7 +89,6 @@ i {
       padding: 0;
       margin: 0;
       border-left: 1px solid rgba(0, 0, 0, 0.1);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       background-color: #FFF; }
       .agenda_time-row .time-column:first-of-type {
         border-left: none; }
@@ -123,8 +124,10 @@ i {
   background-color: #fff;
   min-height: 4em;
   height: 10vh;
-  padding: 0 6% 0 5%; }
+  padding: 0 6% 0 5%;
+  border-top: 1px solid rgba(0, 0, 0, 0.1); }
   .call-to-action .prev, .call-to-action .next {
+    font-size: 1em;
     min-width: 6em;
     width: 20%;
     height: 3em;
@@ -251,7 +254,7 @@ i {
     position: absolute;
     bottom: .5em;
     transform: translateX(-50%);
-    font: .8em 'Open Sans'; }
+    font: .8em 'Roboto'; }
     #initialAnimation .shameless-plug .you {
       font-weight: 600; }
     #initialAnimation .shameless-plug .lvl30wzrds {
