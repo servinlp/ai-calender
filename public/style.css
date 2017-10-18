@@ -131,11 +131,17 @@ i {
     min-width: 6em;
     width: 20%;
     height: 3em;
+    padding: 1px 6px;
+    text-align: center;
     appearance: none;
     -webkit-appearance: none;
     background-color: #0057e7;
     border: 0;
-    color: #FFF; }
+    color: #FFF;
+    line-height: 3em;
+    text-decoration: none;
+    font-family: Arial;
+    font-size: 13.3333px; }
   .call-to-action .next {
     margin-right: auto;
     margin-left: 2%; }

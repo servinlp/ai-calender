@@ -177,11 +177,17 @@ i {
 		min-width: 6em;
 		width: 20%;
 		height: 3em;
+		padding: 1px 6px;
+	    text-align: center;
 		appearance: none;
 		-webkit-appearance: none;
 		background-color: $blue;
 		border: 0;
 		color: #FFF;
+		line-height: 3em;
+		text-decoration: none;
+		font-family: Arial;
+		font-size: 13.3333px;
 	}
 	.next {
 		margin-right: auto;
