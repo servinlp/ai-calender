@@ -20,7 +20,7 @@ const deadlineOverlayClose = document.querySelector('.deadline-overlay #close');
 const profileOverlay = document.querySelector('.profile-overlay');
 const profileOverlayBackground = document.querySelector('.profile-overlay .overlay-background');
 const profileOverlayClose = document.querySelector('.profile-overlay #close');
-console.log(deadlineOverlayClose);
+
 let agenda
 
 /**
@@ -125,7 +125,7 @@ function listUpcomingEvents() {
 		'timeMin': ( new Date() ).toISOString(),
 		'showDeleted': false,
 		'singleEvents': true,
-		'maxResults': 10,
+		// 'maxResults': 10,
 		'orderBy': 'startTime'
 	}).then( response => {
 
@@ -135,7 +135,6 @@ function listUpcomingEvents() {
 			elWithDate = document.querySelectorAll( '[data-date]' ),
 			elArr = Array.from( elWithDate ),
 			dates = elArr.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
-			// dates = elArr.map( d => new Date( d.getAttribute( 'data-date' ) ) )
 
 		console.log( dates )
 
@@ -162,8 +161,6 @@ function listUpcomingEvents() {
 
 				if ( match ) {
 
-					console.log( whenDate )
-					console.log( event )
 					addCallItem( event )
 
 				}
@@ -185,41 +182,86 @@ function listUpcomingEvents() {
 function addCallItem( obj ) {
 
 	const div = document.createElement( 'div' ),
-		startTime = obj.start.dateTime || obj.start.date,
-		startToDate = moment( new Date( startTime ) ),
+		fullDay = obj.start.date,
+		startTime = obj.start.dateTime,
+		date = fullDay || startTime,
+		startToDate = moment( new Date( date ) ),
 		target = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` )
 
-	console.log( target )
+	div.textContent = obj.summary ? obj.summary : '(Geen Titel)'
 
-	div.textContent = obj.summary
-
-	// div.classList.add( `color${obj.colorId}` )
 	div.classList.add( 'item' )
 	div.setAttribute( 'colorId', obj.colorId )
 	div.setAttribute( 'status', obj.status )
 
-	div.style.top = `calc( ( 200vh / 23 ) * ${ startToDate.hours() - 1 } )`
-	div.style.height = `calc((200vh / 23) * 1)`
-	div.style.width = '90%'
-	div.style.backgroundColor = '#0057e7'
+	div.setAttribute( 'data-begin', startToDate.hours() )
+	div.setAttribute( 'data-end', startToDate.hours() + ( obj.hours ? obj.hours : 1 ) )
 
-	target.appendChild( div )
+	div.style.top = !fullDay ? `calc( ( 200vh / 23 ) * ${ startToDate.hours() - 2 } )` : 0
+	div.style.height = `calc( ( 200vh / 23 ) * ${ obj.hours ? obj.hours : 1 } )`
+	div.style.width = '90%'
+
+	if ( target ) {
+
+		target.appendChild( div )
+
+	}
 
 }
 
-function addANewItem() {
+function addANewItem( obj ) {
+
+	console.log( obj )
 
 	const options = {
-		'start': {
-			'dateTime': ( moment().add( 3, 'days' )._d ).toISOString()
-		},
-		'end': {
-			'dateTime': ( moment().add( 3, 'days' ).add(1, 'hour')._d ).toISOString()
-		},
 		'location': 'Amsterdam',
-		'summary': 'hacks :)',
-		'description': 'A chance to hear more about Google\'s developer products.'
+		'summary': obj.summary,
+		'description': 'A chance to hear more about Google\'s developer products.',
+		'colorId': obj.colorId,
+		'status': obj.status,
+		start: {},
+		end: {}
 	}
+
+	if ( obj.start.dateTime ) {
+
+		// startToDate = moment( new Date( date ) ),
+		// startToDate.hours() + ( obj.hours ? obj.hours : 1 )
+
+		console.log( obj.start.dateTime.add( obj.hours ? obj.hours : 1, 'hour' )._d )
+		console.log( obj.start.dateTime.add( obj.hours ? obj.hours : 1, 'hour' ) )
+
+		options.start.dateTime = obj.start.dateTime._d
+		options.end.dateTime = obj.start.dateTime.add( obj.hours ? obj.hours : 1, 'hour' )._d
+
+	} else {
+
+		options.start.date = obj.start.date._d
+		options.end.date = obj.end.date.add( obj.hours ? obj.hours : 1, 'hour' )._d
+
+	}
+
+	// if ( obj.end.dateTime ) {
+	//
+	// 	options.end.dateTime = obj.end.dateTime.add( 1, 'hour' )._d
+	//
+	// } else if ( options.end.date ) {
+	//
+	// 	options.end.date = obj.end.date.add( 1, 'hour' )._d
+	//
+	// } else {
+	//
+	// 	if ( obj.start.dateTime ) {
+	//
+	// 		options.end.dateTime = obj.start.dateTime.add( 1, 'hour' )._d
+	//
+	// 	} else {
+	//
+	// 		options.end.date = obj.start.date.add( 1, 'hour' )._d
+	//
+	// 	}
+	//
+	// }
 
 	gapi.client.calendar.events.insert({
 		'calendarId': 'primary',
@@ -276,14 +318,92 @@ const deadlineHours = document.querySelector('#deadline-hours');
 const deadLineParameters = [];
 deadlineSubmit.addEventListener('click', getDeadline)
 
-const wakeUpTime = '08:00';
-const sleepTime = '23:00';
+const wakeUpTime = '8'
+const sleepTime = '23';
 
 function getDeadline() {
 	deadLineParameters.push(deadlineTitle.value, deadlineEndDate.value, deadlineHours.value)
 	console.log(deadLineParameters);
 
 	showHidePopup(deadlineOverlay);
+
+	const deadline = moment( new Date( deadLineParameters[ 1 ] ) ),
+		daysRemaining = Number( deadline.fromNow( true )[0] ),
+		hoursPerDay = Number( deadLineParameters[ 2 ] ) / daysRemaining
+
+	console.log( daysRemaining )
+	console.log( hoursPerDay )
+
+	const options = {
+		summary: deadLineParameters[ 0 ],
+		start: {
+			dateTime: deadline.hour( wakeUpTime )
+		},
+		colorId: 11,
+		status: 'confirmed'
+	}
+
+	addCallItem( options )
+	// addANewItem( options )
+
+	let day = 1,
+		leftOver =  0
+
+	for ( let i = 0; i < daysRemaining; i++ ) {
+
+		const time = moment().add( day, 'day' ).hour( wakeUpTime ),
+			startToDate = moment( new Date( time ) ),
+			dEl = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` )
+
+		console.log( dEl )
+		let hours
+
+		if ( leftOver !== 0 ) {
+
+			hours = hoursPerDay + leftOver
+			leftOver = 0
+
+		} else {
+
+			hours = hoursPerDay
+
+		}
+
+
+		if ( dEl && dEl.children.length > 0 ) {
+			const firstBegin = Number( dEl.children[ 0 ].getAttribute( 'data-begin' )  ),
+				maxEnd = Number( wakeUpTime ) + hoursPerDay
+
+			if ( maxEnd > firstBegin ) {
+
+				console.log( firstBegin )
+				console.log( firstBegin - Number( wakeUpTime ) )
+				console.log( Number( wakeUpTime ) - firstBegin )
+				leftOver = hours - ( firstBegin - Number( wakeUpTime ) )
+				hours = firstBegin - Number( wakeUpTime )
+				console.log( leftOver )
+
+			}
+
+		}
+
+		const o = {
+			summary: `Werken aan ${deadLineParameters[ 0 ]}`,
+			start: {
+				// date: moment().add( day, 'day' )
+				dateTime: moment().add( day, 'day' ).hour( wakeUpTime )
+			},
+			hours: hours,
+			colorId: 11,
+			status: 'confirmed'
+		}
+
+		addCallItem( o )
+		// addANewItem( o )
+
+		day++
+
+	}
 }
 
 let deadlineOverlayGroup = [];

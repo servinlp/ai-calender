@@ -125,6 +125,7 @@ i {
 			border-left: 1px solid rgba(0,0,0,0.1);
 			// border-bottom: 1px solid rgba(0,0,0,0.1);
 			background-color: #FFF;
+			position: relative;
 			&:first-of-type {
 				border-left: none;
 			}
@@ -133,7 +134,7 @@ i {
 			}
 			.item {
 				display: inline-block;
-				position: relative;
+				position: absolute;
 				width: 100%;
 
 				font-size: .8em;
@@ -145,11 +146,58 @@ i {
 				margin: 0 5%;
 				overflow-wrap: break-word;
 				z-index: 3;
+
+				background: #9FFFE7;
+
+				&[colorId='1'] {
+					background: #a4bdfc;
+				}
+
+				&[colorId='2'] {
+					background: #7ae7bf;
+				}
+
+				&[colorId='3'] {
+					background: #dbadff;
+				}
+
+				&[colorId='4'] {
+					background: #ff887c;
+				}
+
+				&[colorId='5'] {
+					background: #fbd75b;
+				}
+
+				&[colorId='6'] {
+					background: #ffb878;
+				}
+
+				&[colorId='7'] {
+					background: #46d6db;
+				}
+
+				&[colorId='8'] {
+					background: #e1e1e1;
+				}
+
+				&[colorId='9'] {
+					background: #5484ed;
+				}
+
+				&[colorId='11'] {
+					background: #dc2127;
+				}
+				// [colorId='10']
 			}
 			.item-half {
 				margin: 0 0 0 1.25%;
 				&:first-of-type {
 					margin: 0 0 0 2.5%;
+				}
+
+				&:nth-of-type( 2n ) {
+					left: 50%;
 				}
 			}
 		}
