@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-	<link href="/style.css" rel="stylesheet">
+	<link href="/styles/style.css" rel="stylesheet">
 
   </head>
   <body>
@@ -52,14 +52,49 @@
 
       magic.setAttribute( 'src', '/magic.js' )
       script.setAttribute( 'src', '/scripts.js' )
-      g.setAttribute( 'src', 'https://apis.google.com/js/api.js' )
 
-      g.addEventListener( 'load', () => {
-        handleClientLoad()
+      g.setAttribute( 'async', '' );
+      g.setAttribute( 'defer', '' );
+      g.setAttribute( 'src', 'https://apis.google.com/js/api.js' )
+      // g.setAttribute( 'onload', 'this.onload=function(){};handleClientLoad()' );
+        // g.setAttribute( 'onreadystatechange', `if (this.readyState === 'complete') this.onload()` );      
+
+      script.addEventListener('load', () => {
+        console.log('script loaded');
+        // g.setAttribute( 'onload', 'this.onload=function(){};handleClientLoad()' );
+        // g.setAttribute( 'onreadystatechange', `if (this.readyState === 'complete') this.onload()` );      
+
+        // g.addEventListener( 'load', () => {
+        //   console.log('g loaded');
+        //   handleClientLoad()
+        // })
       })
-      g.addEventListener( 'readystatechange', function() {
-        if (this.readyState === 'complete') handleClientLoad()
-      })
+
+      g.onload = () => {
+        this.onload = () => {
+          handleClientLoad()
+        };
+        if (this.readyState === 'complete') this.onload()
+      }
+
+      // var gPromise = new Promise(function(resolve, reject) {
+      //   // do a thing, possibly async, then…
+      //   if (g.readyState === 'complete') {
+      //     resolve("Stuff worked!");
+      //   }
+      //   else {
+      //     reject(Error("It broke"));
+      //   }
+      // })
+
+      // g.addEventListener( 'readystatechange', function() {
+      //   gPromise.then(function(result) {
+      //     console.log(result); // "Stuff worked!"
+      //     handleClientLoad();
+      //   }, function(err) {
+      //     console.log(err); // Error: "It broke"
+      //   });
+      // });
 
       document.body.appendChild( magic )
       document.body.appendChild( script )

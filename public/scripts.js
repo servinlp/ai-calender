@@ -1,3 +1,5 @@
+// import { setInterval } from "timers";
+
 // Client ID and API key from the Developer Console
 const CLIENT_ID = '976883234635-qqhsooiclkcf4hhdq35oa94jafaelqud.apps.googleusercontent.com'
 
@@ -22,28 +24,39 @@ const profileOverlayBackground = document.querySelector('.profile-overlay .overl
 const profileOverlayClose = document.querySelector('.profile-overlay #close');
 
 let agenda
+let calendarColors = [];
 
 /**
 *  On load, called to load the auth2 library and API client library.
 */
 function handleClientLoad() {
-
 	gapi.load( 'client:auth2', initClient )
-
 }
+
+/*
+	If you are already signed in to Google Calendar...
+*/ 
+(function initialChecks(){
+	if(typeof gapi.auth2 !== 'undefined' && typeof gapi !== 'undefined') {
+		if(gapi.auth2.getAuthInstance().isSignedIn.get())
+		{
+		console.log('saus');
+			initialAnimation.style = 'display: none;'
+		}
+	}
+})()
 
 /**
 *  Initializes the API client library and sets up sign-in state
 *  listeners.
 */
 function initClient() {
-
+	
 	gapi.client.init({
 		discoveryDocs: DISCOVERY_DOCS,
 		clientId: CLIENT_ID,
 		scope: SCOPES
 	}).then( () => {
-
 		// Listen for sign-in state changes.
 		gapi.auth2.getAuthInstance().isSignedIn.listen( updateSigninStatus )
 
@@ -71,8 +84,10 @@ function updateSigninStatus( isSignedIn ) {
 		signoutButton.style.display = 'block'
 
 		document.body.style = "overflow: auto;"
-		initialAnimation.style = "animation: .7s ease-out .5s 1 forwards slideOut"
+		initialAnimation.style = "animation: .3s ease-in .5s 1 forwards slideOut"
 		listUpcomingEvents()
+		addTimeIndicator()
+		setTimeout(setScrollPosition, 400)
 
 	} else {
 		authorizeButton.style.display = 'block'
@@ -113,102 +128,238 @@ function appendPre( message ) {
 
 }
 
+/*
+This function sets your viewport on current time and adds an indicator of the time
+*/
+function addTimeIndicator() {
+	// console.log(moment().format('HH'));
+	let currentTimeHours = moment().format('HH');
+	let currentTimeMinutes = moment().format('mm');
+	const timeOfDayColumn = document.querySelectorAll('.time-of-day');
+	timeOfDayColumn.forEach( (time) => {
+		const timeOfDayColumnInHours = time.textContent.replace(':00', '')
+		if( currentTimeHours == timeOfDayColumnInHours ) {
+			time.classList.add('currentHour')
+		}
+	} )
+
+	const currentHourRow = document.querySelector('.currentHour');
+	let positionTimeIndicator = ((currentHourRow.getBoundingClientRect().height / 60) * currentTimeMinutes).toFixed(2);
+	for (let i = 0; i < document.styleSheets.length; i++) {
+		const element = document.styleSheets[i];
+		if(element.href.indexOf('style.css') > 1) {
+			element.insertRule('.currentHour::before { top: '+positionTimeIndicator+'px}', 0);			
+		}		
+	}
+}
+//Change time every minute
+setInterval(addTimeIndicator, 60000)	
+
+/*
+This function sets your scroll position to the current time on first visit or reload */
+
+function setScrollPosition() {
+	const currentHourRow = document.querySelector('.currentHour');
+	let scrollPosition = (currentHourRow.getBoundingClientRect().top) - (window.innerHeight / 2)
+	window.scrollTo( 0, scrollPosition )	
+	console.log(scrollPosition);
+}
+
 /**
 * Print the summary and start datetime/date of the next ten events in
 * the authorized user's calendar. If no events are found an
 * appropriate message is printed.
 */
-function listUpcomingEvents() {
+let setMinimalDateEvents = new Date();
+setMinimalDateEvents.setDate(setMinimalDateEvents.getDate() - 7)
 
+let setMaximalDateEvents = new Date();
+setMaximalDateEvents.setDate(setMaximalDateEvents.getDate() + 365)
+
+
+function listUpcomingEvents() {
+/*
+Get primary calendars
+*/
 	gapi.client.calendar.events.list({
 		'calendarId': 'primary',
-		'timeMin': ( new Date() ).toISOString(),
+		'timeMin': setMinimalDateEvents.toISOString(),
+		'timeMax': setMaximalDateEvents.toISOString(),
 		'showDeleted': false,
 		'singleEvents': true,
 		// 'maxResults': 10,
 		'orderBy': 'startTime'
 	}).then( response => {
-
+		//All items that were fetched
 		agenda = response.result.items
-
+		//
 		const events = response.result.items,
-			elWithDate = document.querySelectorAll( '[data-date]' ),
-			elArr = Array.from( elWithDate ),
-			dates = elArr.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
-
-		console.log( dates )
+		//elWithDate = day columns
+		elWithDate = document.querySelectorAll( '[data-date]' ),
+		//Nodelist -> array
+		elArr = Array.from( elWithDate ),
+		//Makes dates of of data-date columns
+		dates = elArr.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
 
 		appendPre( 'Upcoming events:' )
 
-		console.log( events )
-
 		if ( events.length > 0 ) {
-
 			for ( let i = 0; i < events.length; i++ ) {
-
 				const event = events[ i ]
 				let when = event.start.dateTime
-
 				if ( !when ) {
-
 					when = event.start.date
-
 				}
-
-				const whenDate = moment( when )
+				//change start: dateTime: "2022-05-23T22:00:00+02:00" to usable date
+				const whenDate = moment( when ),
 					day = whenDate.format( 'DD-MM-YYYY' ),
 					match = dates.filter( d => d === day )[ 0 ]
-
+				//Sets item into calendar
 				if ( match ) {
-
 					addCallItem( event )
-
 				}
-
+				//Check <pre> in HTML
 				appendPre(event.summary + ' ( ' + when + ')' )
-
 			}
-
 		} else {
-
 			appendPre( 'No upcoming events found.' )
-
 		}
-
 	})
+/*
+Get secondary calendars
+*/
+	gapi.client.calendar.calendarList.list({
+		'calendarId': 'secondary',
+		'timeMin': setMinimalDateEvents.toISOString(),
+		'timeMax': setMaximalDateEvents.toISOString(),		
+		'showDeleted': false,
+		'singleEvents': true,
+		// 'maxResults': 10,
+		'orderBy': 'startTime'
+	}).then( response => {
+		//All items that were fetched
+		agenda = response.result.items
+		//
+		const events = response.result.items,
+		//elWithDate = day columns
+			elWithDate = document.querySelectorAll( '[data-date]' ),
+			//Nodelist -> array
+			elArr = Array.from( elWithDate ),
+			//Makes dates of of data-date columns
+			dates = elArr.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
 
+		// console.log( 'dates', dates )
+		appendPre( 'Upcoming events:' )
+
+		// console.log('events', events )
+		events.forEach( (event, i) => {
+				gapi.client.calendar.events.list({
+					'calendarId': event.id,
+					'timeMin': setMinimalDateEvents.toISOString(),
+					'timeMax': setMaximalDateEvents.toISOString(),					
+					'showDeleted': false,
+					'singleEvents': true,
+					// 'maxResults': 10,
+					'orderBy': 'startTime'
+				}).then( response => { 
+					console.log(response.result);
+					const eventsSec = response.result.items,
+					//elWithDate = day columns
+						elWithDateSec = document.querySelectorAll( '[data-date]' ),
+						//Nodelist -> array
+						elArrSec = Array.from( elWithDateSec ),
+						//Makes dates of of data-date columns
+						datesSec = elArrSec.map( d => moment( new Date( d.getAttribute( 'data-date' ) ) ).format( 'DD-MM-YYYY' ) )
+			
+					if ( eventsSec.length > 0 ) {
+						
+						for ( let i = 0; i < eventsSec.length; i++ ) {
+							const event = eventsSec[ i ]
+							let when = event.start.dateTime
+							if ( !when ) {
+								when = event.start.date
+							}
+							//change start: dateTime: "2022-05-23T22:00:00+02:00" to usable date
+							const whenDate = moment( when )
+								day = whenDate.format( 'DD-MM-YYYY' ),
+								match = datesSec.filter( d => d === day )[ 0 ]
+							//Sets item into calendar
+							if ( match ) {
+								addCallItem( event, i )
+							}
+							//Check <pre> in HTML
+							appendPre(event.summary + ' ( ' + when + ')' )
+						}
+					} else {
+						appendPre( 'No upcoming events found.' )
+					}
+				})		
+		}) 
+	})
+	function getColors() {
+		return gapi.client.calendar.colors.get({})
+			.then(function(response) {
+			  // Handle the results here (response.result has the parsed body).
+			//   console.log("colors", response.result.calendar);
+			  calendarColors = response.result.calendar
+			}, function(error) {
+			  console.error("Execute error", error);
+			});
+	}
+	getColors();
 }
 
-function addCallItem( obj ) {
-
+//Gets and sets in local calendar
+function addCallItem( obj, color ) {
+	// console.log(obj.start.dateTime - obj.end.dateTime);
 	const div = document.createElement( 'div' ),
 		fullDay = obj.start.date,
 		startTime = obj.start.dateTime,
 		date = fullDay || startTime,
 		startToDate = moment( new Date( date ) ),
 		target = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` )
-
+		endTime = obj.end.dateTime
 	div.textContent = obj.summary ? obj.summary : '(Geen Titel)'
+
+	
+	var __startTime = moment(startTime).format();
+	var __endTime = moment(endTime).format();
+	var __duration = moment.duration(moment(__endTime).diff(__startTime));
+	var __hours = __duration.asHours();
+	// console.log(__hours);
+	
 
 	div.classList.add( 'item' )
 	div.setAttribute( 'colorId', obj.colorId )
 	div.setAttribute( 'status', obj.status )
 
 	div.setAttribute( 'data-begin', startToDate.hours() )
-	div.setAttribute( 'data-end', startToDate.hours() + ( obj.hours ? obj.hours : 1 ) )
-
+	div.setAttribute( 'data-end', startToDate.hours() + ( __hours ? __hours : 1 ) )
+	
 	div.style.top = !fullDay ? `calc( ( 200vh / 23 ) * ${ startToDate.hours() - 2 } )` : 0
-	div.style.height = `calc( ( 200vh / 23 ) * ${ obj.hours ? obj.hours : 1 } )`
-	div.style.width = '90%'
-
+	div.style.height = `calc( ( 200vh / 23 ) * ${ __hours ? __hours : 1 } )`
+	div.style.width = '90%';
+	function setCalendarColor() {
+		if(typeof calendarColors[color + 1] !== 'undefined') {
+			if (color + 1 !== NaN) {
+				return calendarColors[color + 1].background
+			}
+			else {
+				return '#0057e7'
+			}	
+		}
+		else {
+			return '#0057e7'
+		}
+	}
+	div.style.backgroundColor = setCalendarColor();
 	if ( target ) {
-
 		target.appendChild( div )
-
 	}
 
 }
 
+//Adds calendar item to google calendar
 function addANewItem( obj ) {
 
 	console.log( obj )
@@ -278,6 +429,7 @@ function addANewItem( obj ) {
 
 }
 
+//For future references
 function saveCalendar() {
 
 	console.log( agenda )
@@ -311,6 +463,8 @@ function saveCalendar() {
 
 }
 
+// START
+// of making deadline
 const deadlineSubmit = document.querySelector('.deadline-submit');
 const deadlineTitle = document.querySelector('#deadline-title');
 const deadlineEndDate = document.querySelector('#deadline-enddate');
@@ -405,6 +559,8 @@ function getDeadline() {
 
 	}
 }
+//END making deadline
+
 
 let deadlineOverlayGroup = [];
 deadlineOverlayGroup.push(addNew, deadlineOverlayClose, deadlineOverlayBackground)
