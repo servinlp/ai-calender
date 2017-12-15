@@ -23,7 +23,7 @@ const profileOverlay = document.querySelector('.profile-overlay');
 const profileOverlayBackground = document.querySelector('.profile-overlay .overlay-background');
 const profileOverlayClose = document.querySelector('.profile-overlay #close');
 
-let agenda
+let agenda;
 let calendarColors = [];
 let googleCalendarColors = [];
 let allCalendersThatWereGet = [];
@@ -181,13 +181,15 @@ function addTimeIndicator() {
 	let positionTimeIndicator = ((currentHourRow.getBoundingClientRect().height / 60) * currentTimeMinutes).toFixed(2);
 	for (let i = 0; i < document.styleSheets.length; i++) {
 		const element = document.styleSheets[i];
-		if(element.href.indexOf('style.css') > 1) {
+		console.log(element)
+		if(element.href !== null && element.href.indexOf('style.css') > 1) {
+			console.log(element.href)
 			element.insertRule('.currentHour::before { top: '+positionTimeIndicator+'px}', 0);			
 		}		
 	}
 }
 //Change time every minute
-setInterval(addTimeIndicator, 60000)	
+setInterval(addTimeIndicator, 60000)
 
 /*
 This function sets your scroll position to the current time on first visit or reload */
@@ -317,6 +319,7 @@ Get secondary calendars
 					if ( eventsSec.length > 0 ) {
 						//Removes duplicate schedule items
 						eventsSec.filter((elem, index, arr) => arr.indexOf(elem) === index);
+                        console.log(eventsSec)
 
 						for ( let i = 0; i < eventsSec.length; i++ ) {
 							const event = eventsSec[ i ]
@@ -371,7 +374,10 @@ function addCalendarItem( obj, color ) {
 		startTime = obj.start.dateTime,
 		date = fullDay || startTime,
 		startToDate = moment( new Date( date ) ),
-		target = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` )
+		target = document.querySelector( `[data-day='${ startToDate.format( 'D' ) }']` ),
+		eventByProphecy = [];
+	//After current week, query will fail
+
 	if(obj.end) {
 		if (obj.end.dateTime) {
 			endTime = obj.end.dateTime
@@ -425,21 +431,12 @@ function addCalendarItem( obj, color ) {
 	var eventStart = getMinutesAsHour(startToDate) + startToDate.hours();
 
 	// div.setAttribute('data-end', __endTime.format('HH:mm') )
-
 	div.style.top = !fullDay ? `calc( ( 100% / 23 ) * ${ eventStart - 1} )` : 0
 	div.style.height = `calc( ( 100% / 23 ) * ${ eventLength ? eventLength : 1 } )`
 	div.style.width = '90%';
 	function setCalendarColor(parentCalendar) {
 		const calendarNumberInArray = allCalendersThatWereGet.indexOf(parentCalendar)
 		return googleCalendarColors[calendarColors[calendarNumberInArray]].background
-	}
-	if (obj.description) {
-		if (obj.description.indexOf('Added by Prophecy Calendar') !== -1) {
-			div.addEventListener('mouseover', function() {
-				div.style.backgroundColor = "blue";
-			})
-			div.addEventListener('click', popupForEventClick)
-		}
 	}
 	if (obj.organizer.email) {
 		div.style.backgroundColor = setCalendarColor(obj.organizer.email);
@@ -448,24 +445,68 @@ function addCalendarItem( obj, color ) {
 	}
 
 	div.style.backgroundColor = obj.colorId;
-	console.log(div);
-	if ( target ) {
+
+    if (obj.description) {
+        //If the object is made by Prophecy
+        if (obj.description.indexOf('Added by Prophecy Calendar') !== -1) {
+            div.setAttribute('generatedByProphecy', '');
+
+            const menuGroup = document.createElement('section');
+
+            const cornerButton = document.createElement('button');
+            menuGroup.setAttribute('data-show-popup', 'false')
+            menuGroup.appendChild(cornerButton)
+            div.appendChild(menuGroup)
+
+            cornerButton.addEventListener('mouseover', function() {
+                div.style.backgroundColor = "blue";
+            })
+            cornerButton.addEventListener('click', popupForEventClick)
+
+            eventByProphecy.push(div)
+        }
+    }
+
+    if ( target ) {
 		target.appendChild( div )
 	}
 }
 
-function popupForEventClick() {
-	const popup = document.createElement('div')
-	const replan = document.createElement('p')
-	replan.textContent = "Replan"
-	popup.classList.add('item-popup')
-	popup.appendChild(replan)
-	replan.addEventListener('click', replanEvent)
-	this.appendChild(popup)
+function popupForEventClick(event) {
+	// this.removeEventListener('click', popupForEventClick)
+    const parent = document.querySelector('[data-show-popup]');
+
+    if(parent.getAttribute('data-show-popup') === 'false') {
+        parent.setAttribute('data-show-popup', 'true');
+        if(!parent.querySelectorAll('.item-popup')[0]) {
+            const popupMenu = document.createElement('div');
+            popupMenu.classList.add('item-popup')
+
+            parent.appendChild(popupMenu)
+
+            const popupParent = event.target.parentElement;
+            const popup = popupParent.querySelector('.item-popup');
+            const replan = document.createElement('button');
+            const cancel = document.createElement('button');
+            replan.textContent = "Replan";
+            cancel.textContent = "Cancel";
+            popup.classList.add('item-popup');
+            popup.appendChild(replan);
+            popup.appendChild(cancel);
+            replan.addEventListener('click', replanEvent);
+            cancel.addEventListener('click', popupForEventClick)
+            popupParent.appendChild(popup)
+        }
+    }
+    else {
+        parent.setAttribute('data-show-popup', 'false');
+    }
+
 }
 
-function replanEvent() {
-	console.log(this);
+function replanEvent(element) {
+	console.log(element);
+    // element.addEventListener('click', popupForEventClick)
 }
 
 //Adds calendar item to google calendar
@@ -537,42 +578,6 @@ function addANewItem( obj ) {
 	// })
 
 }
-
-//For future references
-// function saveCalendar() {
-
-// 	console.log( agenda )
-
-// 	const obj = {
-// 		calendar: agenda
-// 	},
-// 	myHeaders = new Headers()
-
-// 	myHeaders.append( 'Content-Type', 'application/json' )
-
-// 	fetch( '/setCalendar', {
-// 		method: 'POST',
-// 		headers: myHeaders,
-// 		body: JSON.stringify( obj ),
-// 		credentials: 'same-origin'
-// 	}).then( response => {
-
-// 		console.log( response )
-// 		return response.json()
-
-// 	}).then( res => {
-
-// 		console.log( res )
-
-// 	}).catch( err => {
-
-// 		console.log( err )
-
-// 	})
-
-// }
-
-
 
 /*
 	PSEUDO FUNCTION - CREATE DEADLINE
@@ -786,6 +791,13 @@ function getDeadline() {
 		if (currentDaySchedule) {
 			currentDayScheduleItems.push(currentDaySchedule.querySelectorAll('.item'))
 		}
+		// else {
+		// 	const newDay = document.createElement('div');
+		// 	newDay.setAttribute('data-day', startToDate.format('D'))
+		// 	document.querySelector('#content').appendChild(newDay)
+		// 	console.log(newDay)
+		// }
+		//fix for missing days of next weeks
 		if (currentDayScheduleItems <= 0) {
 			return
 		}
