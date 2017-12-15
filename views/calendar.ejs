@@ -25,6 +25,19 @@
 			<div class="time-of-day">22:00</div>
 			<div class="time-of-day">23:00</div>
 		</section>
+		<header class="header_menu">
+			<ul class="header_menu--display">
+				<li class="header_menu--display-item">
+					<button data-set-month class="header_menu--display-button" type="button">Month</button>
+				</li>
+				<li class="header_menu--display-item">
+					<button data-set-week class="header_menu--display-button active" type="button">Week</button>
+				</li>
+				<li class="header_menu--display-item">
+					<button data-set-day class="header_menu--display-button" type="button">Day</button>
+				</li>
+			</ul>		
+		</header>
 
 		<div class="agenda_date-row">
 			<div class="day <%= week[ 0 ] === today ? 'active' : '' %>"><span><%= week[ 0 ] %></span><small>Mon</small></div>
@@ -79,10 +92,11 @@
 			<filter id="goo">
 				<feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
 				<feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-				<feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+				<feComposite in="SourceGraphic" in2="goo" operator="atop" />
 			</filter>
 		</defs>
 	</svg>
+
 </section>
 
 <section data-show="false" class="overlay deadline-overlay">
@@ -92,15 +106,15 @@
 		<h2>New Deadline</h2>
 		<label for="deadline-title">
 			Title of your deadline
-			<input type="text" id="deadline-title" placeholder="your new deadline">
+			<input type="text" id="deadline-title" placeholder="your new deadline" value="deadline">
 		</label>
 		<label for="deadline-enddate">
 			End date of your deadline
-			<input type="date" id="deadline-enddate">
+			<input type="date" id="deadline-enddate" value="2017-12-20">
 		</label>
 		<label for="deadline-hours">
 			Amount of hours needed
-			<input type="number" id="deadline-hours" placeholder="20">
+			<input type="number" id="deadline-hours" placeholder="20" value="20">
 		</label>
 		<button class="deadline-submit" type="submit">Plan me!</button>
 	</div>

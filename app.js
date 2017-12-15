@@ -5,8 +5,7 @@ const express = require( 'express' ),
 	bodyParser = require( 'body-parser' ),
 	moment = require( 'moment' ),
 	PORT = 8000
-
-
+	// PouchDB = require('pouchdb')
 app.use( express.static( 'public' ) )
 app.set( 'views', './views' )
 

@@ -1,17 +1,38 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>AI Calender</title>
+    <title>Prophecy</title>
     <meta charset='utf-8' />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-	<link href="/styles/style.css" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/images/favicons/manifest.json">
+    <link rel="mask-icon" href="/images/favicons/safari-pinned-tab.svg" color="#0057e7">
+    <meta name="theme-color" content="#0057e7">
+
+    <!-- Add to home screen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0057e7">
+    <meta name="apple-mobile-web-app-title" content="Prophecy">
+
+    <meta name="msapplication-TileImage" content="/images/favicons/mstile-150x150.png">
+    <meta name="msapplication-TileColor" content="#0057e7">
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link preload href="/styles/style.css" rel="stylesheet">
 
   </head>
   <body>
   <div id="initialAnimation">
-  	<h2>Log in with your Google account</h2>
+    <hgroup>
+      <h1>Prophecy</h1>
+      <h3>'a prediction of what will happen in the future.'</h3>
+      <h2>Log in with your Google account</h2>
+    </hgroup>
     <!-- <button id="authorize-button" style="display: none;">
       <span class="icon"></span>
       <span class="buttonText">Sign in</span>
@@ -31,16 +52,15 @@
 
 	<%- include( 'calendar' ) %>
 
-
+  <!-- <script async defer src="../node_modules/pouchdb/dist/pouchdb.min.js"></script> -->
 	<script async defer src="/moment.js"></script>
 	<!-- <script async defer src="/scripts.js"></script> -->
 
 	<script data-tween async defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
 
-  <!-- <script async defer src="https://apis.google.com/js/api.js"
-    onload="this.onload=function(){};handleClientLoad()"
-    onreadystatechange="if (this.readyState === 'complete') this.onload()">
-  </script> -->
+  <script async defer src="https://apis.google.com/js/api.js">
+  
+  </script>
 
   <script>
     const tween = document.querySelector( '[data-tween]' )
@@ -48,9 +68,11 @@
 
       const script = document.createElement( 'script' ),
         magic = document.createElement( 'script' ),
+        database = document.createElement( 'script' ),
         g = document.createElement( 'script' )
 
       magic.setAttribute( 'src', '/magic.js' )
+      database.setAttribute( 'src', '/database.js' )
       script.setAttribute( 'src', '/scripts.js' )
 
       g.setAttribute( 'async', '' );
@@ -96,9 +118,10 @@
       //   });
       // });
 
-      document.body.appendChild( magic )
-      document.body.appendChild( script )
       document.body.appendChild( g )
+      document.body.appendChild( magic )
+      document.body.appendChild( database )
+      document.body.appendChild( script )
 
     })
   </script>

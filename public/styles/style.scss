@@ -3,6 +3,7 @@ $timeOfDayWidth: 2.75em;
 $blockHeight: calc(200vh / 23);
 $blue: rgba(0,87,231, 1);
 $lightBlue: #4d90fe;
+$headerHeight: 7.5vh;
 
 *, *:before, *:after {
 	box-sizing: border-box;
@@ -27,7 +28,7 @@ i {
 		width: $timeOfDayWidth;
 		padding: 0;
 		margin: 0;
-		border-right: 1px solid rgba(0,0,0,.2);
+		// border-right: 1px solid rgba(0,0,0,.2);
 		
 		display: flex;
 		flex-flow: column wrap;
@@ -35,7 +36,7 @@ i {
 		.time-of-day {
 			display: flex;
 			justify-content: center;
-			align-items: center;
+			align-items: baseline;
 			margin: 0 auto;
 			// border-right: 1px solid rgba(0,0,0,.2);
 			// border-bottom: 1px solid rgba(0,0,0,0.3);
@@ -58,11 +59,11 @@ i {
 				left: 0;
 				z-index: 2;
 			}
-			&:last-of-type {
-				&::after {
-					display: none;
-				}
-			}
+			// &:last-of-type {
+			// 	&::after {
+			// 		display: none;
+			// 	}
+			// }
 		}
 		.currentHour {
 			&::before {
@@ -82,8 +83,9 @@ i {
 		justify-content: space-around;
 		position: fixed;
 		right: 0;
-		top: 0;
+		top: $headerHeight;
 		background-color: #FFF;
+		box-shadow: 5px 0px 8px 0px rgba(0, 0, 0, 0.25);
 		z-index: 2;
 		.day {
 			display: flex;
@@ -108,10 +110,10 @@ i {
 			// &:last-of-type {
 			// 	// border-right: 1px solid rgba(0,0,0,0.1);
 			// }
-			&:first-of-type {
-				border-left: 0;
-				// padding-left: 1px;
-			}
+			// &:first-of-type {
+			// 	border-left: 0;
+			// 	// padding-left: 1px;
+			// }
 		}
 		.active {
 			color: $blue;
@@ -138,9 +140,9 @@ i {
 			// border-bottom: 1px solid rgba(0,0,0,0.1);
 			background-color: #FFF;
 			position: relative;
-			&:first-of-type {
-				border-left: none;
-			}
+			// &:first-of-type {
+			// 	border-left: none;
+			// }
 			&:last-of-type {
 				border-right: 1px solid rgba(0,0,0,0.1);
 			}
@@ -149,18 +151,19 @@ i {
 				position: absolute;
 				width: 100%;
 
-				font-size: .8em;
+				font-size: 1em;
 				color: #FFF;
 				border-radius: 4px;
+				border: 3px solid rgba(0,0,0,.25);
 				overflow: hidden;
 
-				padding: 3px;
+				padding: .5em;
 				margin: 0 5%;
 				overflow-wrap: break-word;
 				z-index: 3;
 
-				background: #9FFFE7;
-
+				background-color: #9FFFE7;
+				// opacity: .85;
 				&[colorId='1'] {
 					background: #a4bdfc;
 				}
@@ -231,7 +234,8 @@ i {
 	min-height: 4em;
 	height: 10vh;
 	padding: 0 6% 0 5%;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	box-shadow:0px 0px 8px 0px rgba(0, 0, 0, 0.25);
 	.prev, .next {
 		font-size: 1em;
 		min-width: 6em;
@@ -252,6 +256,54 @@ i {
 	.next {
 		margin-right: auto;
 		margin-left: 2%;
+	}
+}
+.header_menu {
+	display: flex;
+	flex-flow: row wrap;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: $headerHeight;
+	background-color: #FFF;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+	z-index: 3;
+	&--display {
+		padding: 0;margin:0;
+		display: flex;
+		align-items: center;
+		&-item {
+			list-style: none;
+		}
+		&-button {
+			font-size: 1em;
+			min-width: 6em;
+			width: 20%;
+			height: 3em;
+			max-height: 5vh;
+			padding: 1px 6px;
+			text-align: center;
+			appearance: none;
+			-webkit-appearance: none;
+			background-color: $blue;
+			border: 0;
+			color: #FFF;
+			line-height: 1;
+			text-decoration: none;
+			font-family: Arial;
+			font-size: 13.3333px;
+			margin-left: 1vw;
+
+			transition: box-shadow 150ms ease-out;
+			&:hover {
+				box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.7);
+			}
+		}
+		.active {
+			background-color: lighten($blue, 10%);
+			box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.7);
+		}
 	}
 }
 
@@ -371,26 +423,35 @@ i {
 
 #initialAnimation {
 	// display: block;
-  position: absolute;
+  	position: absolute;
 	left: 0;
 	top: 0;
 
-  height: 100vh;
-  min-height: 100vh;
-  width: 100%;
+	height: 100vh;
+	min-height: 100vh;
+	width: 100%;
 
 	background-color: #FFF;
 	border-bottom: 3px solid $blue;
 	text-align: center;
 
 	z-index: 9999999;
-  // animation: 1s ease-out .5s 1 forwards slideOut;
+ 	// animation: 1s ease-out .5s 1 forwards slideOut;
 	transform-origin: top;
-  transition: transform .3s ease-out;
+  	transition: transform .3s ease-out;
+	hgroup {
+		margin-top: 25vh;
+	}
+	h1 {
+		font: 300 3em Roboto,sans-serif;
+		margin: -5vh auto 5vh auto;
+	}
 	h2 {
 		color: #757575;
-    font: 300 34px/40px Roboto,sans-serif;
-		margin-top: 25vh;
+		font: 300 1.5em Roboto,sans-serif;
+	}
+	h3 {
+		font: 300 1em 'Open Sans',sans-serif;
 	}
 	.shameless-plug {
 		position: absolute;
@@ -536,4 +597,32 @@ i {
   100% {
     transform: scaleY(0);
   }
+}
+
+//Currently just for current day
+.day-view {
+	.agenda_date-row {
+		.day {
+			&.active {
+				max-width: 100%;
+				min-width: 100%;
+				width: 100%;
+			}
+			&:not(.active) {
+				display: none;
+			}
+		}	
+	}
+	.agenda_time-row {
+		.time-column {
+			&.active {
+				max-width: 100%;
+				min-width: 100%;
+				width: 100%;
+			}
+			&:not(.active) {
+				display: none;
+			}
+		}
+	}
 }
