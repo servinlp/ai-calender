@@ -180,7 +180,7 @@ function showHidePopup(parent) {
     TweenMax.to(item, .3, {
       scale: 1,
       opacity: 1,
-      ease: Quint.easeIn,
+      ease: Quint.easeOut,
     })
     item.setAttribute('data-show', 'true');
   }
@@ -188,7 +188,7 @@ function showHidePopup(parent) {
     TweenMax.to(item, .3, {
       scale: 0,
       opacity: 0,
-      ease: Quint.easeIn,
+      ease: Quint.easeOut,
     })
     item.setAttribute('data-show', 'false');
   }

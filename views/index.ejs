@@ -10,12 +10,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/images/favicons/android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
-    <link rel="manifest" href="/images/favicons/manifest.json">
+    <link rel="manifest" href="/images/favicons/manifest.webmanifest" type="application/manifest+json">
     <link rel="mask-icon" href="/images/favicons/safari-pinned-tab.svg" color="#0057e7">
     <meta name="theme-color" content="#0057e7">
 
     <!-- Add to home screen for Safari on iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="#0057e7">
     <meta name="apple-mobile-web-app-title" content="Prophecy">
 
@@ -58,9 +58,7 @@
 
 	<script data-tween async defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
 
-  <script async defer src="https://apis.google.com/js/api.js">
-  
-  </script>
+  <script async defer src="https://apis.google.com/js/api.js"></script>
 
   <script>
     const tween = document.querySelector( '[data-tween]' )
@@ -90,14 +88,15 @@
         //   console.log('g loaded');
         //   handleClientLoad()
         // })
-      })
 
+      })
       g.onload = () => {
         this.onload = () => {
           handleClientLoad()
         };
         if (this.readyState === 'complete') this.onload()
       }
+
 
       // var gPromise = new Promise(function(resolve, reject) {
       //   // do a thing, possibly async, then…
@@ -124,6 +123,7 @@
       document.body.appendChild( script )
 
     })
+
   </script>
   </body>
 </html>
