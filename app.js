@@ -20,6 +20,9 @@ app.use( session({
 	saveUninitialized: false
 }) )
 
+app.get( '/images/favicons', (req, res) => {
+	res.redirect('/')
+})
 //Get index 
 app.get( '/', ( req, res ) => {
 	//Current week

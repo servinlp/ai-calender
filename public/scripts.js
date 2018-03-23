@@ -15,7 +15,6 @@ const authorizeButton = document.querySelector( '#authorize-button' )
 const signoutButton = document.querySelector( '#signout-button' )
 const addNew = document.querySelector( '#add-new' )
 const profileButton = document.querySelector( '#profile-button' )
-const saveCal = document.querySelector( '#save-cal' )
 const initialAnimation = document.querySelector('#initialAnimation');
 const deadlineOverlay = document.querySelector('.deadline-overlay');
 const deadlineOverlayBackground = document.querySelector('.deadline-overlay .overlay-background');
@@ -27,6 +26,10 @@ const preferenceButton = document.querySelector('#preference-button')
 const preferenceOverlay = document.querySelector('.preference-overlay');
 const preferenceOverlayBackground = document.querySelector('.preference-overlay .overlay-background');
 const preferenceOverlayClose = document.querySelector('.preference-overlay #close');
+const replanButton = document.querySelector('#replan-button')
+const replanOverlay = document.querySelector('.replan-overlay');
+const replanOverlayBackground = document.querySelector('.replan-overlay .overlay-background');
+const replanOverlayClose = document.querySelector('.replan-overlay #close');
 
 let agenda;
 let calendarColors = [];
@@ -68,23 +71,23 @@ function handleClientLoad() {
 // 	});
 // }
 
-window.addEventListener('beforeinstallprompt', function (e) {
-	// beforeinstallprompt Event fired
+// window.addEventListener('beforeinstallprompt', function (e) {
+// 	// beforeinstallprompt Event fired
 
-	// e.userChoice will return a Promise.
-	// For more details read: https://developers.google.com/web/fundamentals/getting-started/primers/promises
-	e.userChoice.then(function (choiceResult) {
+// 	// e.userChoice will return a Promise.
+// 	// For more details read: https://developers.google.com/web/fundamentals/getting-started/primers/promises
+// 	e.userChoice.then(function (choiceResult) {
 
-		console.log(choiceResult.outcome);
+// 		console.log(choiceResult.outcome);
 
-		if (choiceResult.outcome == 'dismissed') {
-			console.log('User cancelled home screen install');
-		}
-		else {
-			console.log('User added to home screen');
-		}
-	});
-});
+// 		if (choiceResult.outcome == 'dismissed') {
+// 			console.log('User cancelled home screen install');
+// 		}
+// 		else {
+// 			console.log('User added to home screen');
+// 		}
+// 	});
+// });
 
 
 /**
@@ -129,6 +132,7 @@ function updateSigninStatus( isSignedIn ) {
 		listUpcomingEvents()
 		addTimeIndicator()
 		setScrollPosition()
+		showHidePopup(preferenceOverlay);
 
 	} else {
 		authorizeButton.style.display = 'block'
@@ -383,7 +387,7 @@ function getMinutesAsHour(minuteValue) {
 }
 
 //Gets and sets in local calendar
-function addCalendarItem( obj, color ) {
+function addCalendarItem( obj ) {
 	const div = document.createElement( 'div' ),
 		fullDay = obj.start.date,
 		startTime = obj.start.dateTime,
@@ -473,9 +477,9 @@ function addCalendarItem( obj, color ) {
             menuGroup.appendChild(cornerButton)
             div.appendChild(menuGroup)
 
-            cornerButton.addEventListener('mouseover', function() {
-                div.style.backgroundColor = "blue";
-            })
+            // cornerButton.addEventListener('mouseover', function() {
+            //     // div.style.backgroundColor = "blue";
+            // })
             cornerButton.addEventListener('click', popupForEventClick)
 
             eventByProphecy.push(div)
@@ -483,13 +487,298 @@ function addCalendarItem( obj, color ) {
     }
 
     if ( target ) {
+		// console.log(target);
 		target.appendChild( div )
+	}
+	// if (addToEventHolder === true)
+	// {
+	// 	//Creates an element with every item until deadline
+	// 	const _makeDiv = document.querySelector('#eventHolder')
+	// 	// Div or the event element needs to be cloned to append it twice
+	// 	const div2 = div.cloneNode(true)
+
+	// 	_makeDiv.appendChild(div2)
+	// }
+}
+
+function objectToElementHolder(obj) {
+	const div = document.createElement('div'),
+		fullDay = obj.start.date,
+		startTime = obj.start.dateTime,
+		date = fullDay || startTime,
+		startToDate = moment(new Date(date)),
+		target = document.querySelector(`[data-day='${startToDate.format('D')}']`),
+		eventByProphecy = [];
+	//After current week, query will fail
+	// console.log('startToDate, 509', startToDate.format('YYYY-MM-DD'));
+	div.setAttribute('data-start-date', startToDate)
+	//isSame()
+	if (obj.end) {
+		if (obj.end.dateTime) {
+			endTime = obj.end.dateTime
+		} else {
+			div.setAttribute('data-full-day', 'true')
+			div.style = "display: none"
+			endTime = obj.end.date
+		}
+	} else {
+		endTime = moment(obj.start.dateTime).add(1, 'hour')
+	}
+	// const endTime = obj.end.dateTime || moment(obj.start.dateTime).add(1, 'hour')	
+	div.textContent = obj.summary ? obj.summary : '(Geen Titel)'
+
+	var __startTime = moment(startTime).format();
+	var __endTime = moment(endTime).format();
+	var __duration = moment.duration(moment(__endTime).diff(__startTime));
+	// var __hours = __duration.asHours();
+	var __hours = __duration.hours() + ':' + __duration.minutes();
+
+	div.classList.add('item')
+	div.setAttribute('status', obj.status)
+
+	// div.setAttribute( 'data-begin', startToDate.hours() )
+	div.setAttribute('data-begin', startToDate.format('HH:mm'))
+	var __endTimeHours = startToDate.hours() + __duration.hours()
+
+	var __endTimeMinutes = startToDate.minutes() + __duration.minutes()
+	if (__endTimeMinutes >= 60) {
+		__endTimeMinutes -= 60
+		__endTimeHours++
+	}
+	__endTime = __endTimeHours + ':' + __endTimeMinutes
+	div.setAttribute('data-end', __endTime)
+	var eventLength = getMinutesAsHour(__duration) + __duration.hours();
+
+	var eventStart = getMinutesAsHour(startToDate) + startToDate.hours();
+
+	div.style.top = !fullDay ? `calc( ( 100% / 23 ) * ${eventStart - 1} )` : 0
+	div.style.height = `calc( ( 100% / 23 ) * ${eventLength ? eventLength : 1} )`
+	div.style.width = '90%';
+	function setCalendarColor(parentCalendar) {
+		const calendarNumberInArray = allCalendarsThatWereGet.indexOf(parentCalendar)
+		return googleCalendarColors[calendarColors[calendarNumberInArray]].background
+	}
+	if (obj.organizer.email) {
+		div.style.backgroundColor = setCalendarColor(obj.organizer.email);
+	} else {
+		div.style.backgroundColor = 'red'
+	}
+
+	div.style.backgroundColor = obj.colorId;
+
+	if (obj.description) {
+		//If the object is made by Prophecy
+		if (obj.description.indexOf('Added by Prophecy Calendar') !== -1) {
+			div.setAttribute('generatedByProphecy', '');
+
+			const menuGroup = document.createElement('section');
+
+			const cornerButton = document.createElement('button');
+			menuGroup.setAttribute('data-show-popup', 'false')
+			menuGroup.appendChild(cornerButton)
+			div.appendChild(menuGroup)
+
+			// cornerButton.addEventListener('mouseover', function () {
+			// 	div.style.backgroundColor = "blue";
+			// })
+			cornerButton.addEventListener('click', popupForEventClick)
+
+			// eventByProphecy.push(div)
+		}
+	}
+
+		//Creates an element with every item until deadline
+		const _makeDiv = document.querySelector('#eventHolder')
+		console.log('added', div);
+		_makeDiv.appendChild(div)
+		// checkDateAndAddToCalendar()
+}
+
+// function checkDateAndAddToCalendar() {
+// 	const eventHolder = document.querySelector('#eventHolder'),
+// 		  allHolderEvents = eventHolder.querySelectorAll('div'),
+// 		  calendarView = document.querySelector('.agenda_time-row'),
+// 		  allDaysOfCalendarView = calendarView.querySelectorAll('div')
+	
+// 	allHolderEvents.forEach( event => {
+// 		const eventDate = moment(event.getAttribute('data-start-date'))
+
+// 		for (let i = 0; i < allDaysOfCalendarView.length; i++) {
+// 			if (eventDate.isSame(moment(allDaysOfCalendarView[i].getAttribute('data-date')), 'day')) {
+// 				console.log('event and day', event, allDaysOfCalendarView[i]);
+// 			}
+			
+// 		}
+// 	})
+// }
+
+function makeThings() {
+	// get today
+	// if eventHolder contains div with startDate isSame as today
+	// check differences etc
+	// create object with todays date and times
+	// else 
+	// create object with todays and and wakeUptime + 1 --> maxHoursPerDay
+	console.log('start of make things');
+	const eventHolder = document.querySelector('#eventHolder'),
+		  allHolderEvents = eventHolder.querySelectorAll('div')
+	const deadline = moment(new Date(deadLineParameters[1]))
+
+	const daysRemaining = Math.abs(Math.floor(moment().diff(moment(deadLineParameters[1]), 'days', true)))
+	console.log('days remaining', daysRemaining);
+
+	let day = 1
+	console.log(deadline);
+	for (let i = 0; i < daysRemaining; i++) {
+		console.log(i < daysRemaining);
+		console.log(day);
+		const time = moment().add(day, 'day').hour(wakeUpTime).minute(0)
+		const startToDate = moment(new Date(time))
+		console.log(startToDate);
+		// const currentDaySchedule = `[data-start-date='${startToDate.format('D')}']`
+		// const currentDaySchedule = document.querySelector(`[data-day='${startToDate.format('D')}']`)
+		// const currentDayInEventHolder = eventHolder.querySelectorAll(currentDaySchedule)
+		
+		//All items of today
+		const currentDayScheduleItems = [];
+		console.log(daysRemaining);
+		eventHolder.querySelectorAll('[data-start-date]').forEach(element => {
+			const elementDate = moment(element.getAttribute('data-start-date'))
+			if (startToDate.isSame(elementDate, 'day') ) {
+				console.log(day, element);
+				console.log('this date has same day');
+				currentDayScheduleItems.push(element)
+			}
+		})
+		console.log(day, currentDayScheduleItems);
+		// let hours
+		// if (leftOver !== 0) {
+		// 	hours = hoursPerDay + leftOver
+		// 	leftOver = 0
+		// } else {
+		// 	hours = hoursPerDay
+		// }
+		// if (currentDaySchedule && currentDaySchedule.children.length > 0) {
+		// 	const firstBegin = Number(currentDaySchedule.children[0].getAttribute('data-begin')),
+		// 		maxEnd = Number(wakeUpTime) + hoursPerDay
+		// 	if (maxEnd > firstBegin) {
+		// 		leftOver = hours - (firstBegin - Number(wakeUpTime))
+		// 		hours = firstBegin - Number(wakeUpTime)
+		// 	}
+		// }
+
+		//fix for missing days of next weeks
+		// if (currentDayScheduleItems <= 0) {
+		// 	return
+		// }]
+		const currentDayScheduleItemTimes = [];
+
+		if (currentDayScheduleItems.length > -1) {
+
+			console.log(currentDayScheduleItems);
+			//Makes an array of your scheduled times
+			currentDayScheduleItems.forEach((agendaItem, i) => {
+				// console.log('agenda item =', agendaItem);
+				const agendaItemStart = timeToHourAndDecimal(agendaItem.getAttribute('data-begin'))
+				const agendaItemEnd = timeToHourAndDecimal(agendaItem.getAttribute('data-end'))
+				const agendaItemStartMinutes = getMinutesOfTime(agendaItem.getAttribute('data-begin'))
+				const agendaItemEndMinutes = getMinutesOfTime(agendaItem.getAttribute('data-end'))
+				currentDayScheduleItemTimes.push(Array(agendaItemStart, agendaItemEnd, agendaItemStartMinutes, agendaItemEndMinutes))
+				console.log(agendaItem, i, currentDayScheduleItemTimes);
+			})
+			console.log(currentDayScheduleItemTimes);
+			if (currentDayScheduleItemTimes.length > -1) {
+				console.log('first item detected');
+				// console.log((currentDayScheduleItemTimes[0][0] - 1) + ' - ' + (wakeUpTime + 1) + ' = ' + ( (currentDayScheduleItemTimes[0][0] - 1)  - (wakeUpTime + 1)));
+				//If time of wake up and first scheduled item difference bigger than 3 hour, plan in 1 hour, 1hour for waking up 1hour for travel
+				if (currentDayScheduleItemTimes[0]) {
+					if ((currentDayScheduleItemTimes[0][0] - 1) - (wakeUpTime + 1) >= maxHoursPerDay){
+						setAllAgendaEvents(day, wakeUpTime, 0, (wakeUpTime + maxHoursPerDay + 2), 0)
+					}
+					if ((currentDayScheduleItemTimes[0][0] - 1) - (wakeUpTime + 1) >= 1 && (currentDayScheduleItemTimes[0][0] - 1) - (wakeUpTime + 1) <= maxHoursPerDay) {
+						console.log('first item function fired ');
+						console.log(day, wakeUpTime, 0, (currentDayScheduleItemTimes[0][0] - 1), currentDayScheduleItemTimes[0][2]);
+						//If there is 2 hours of time between first and second scheduled appointment
+						setAllAgendaEvents(day, wakeUpTime, 0, currentDayScheduleItemTimes[0][0], currentDayScheduleItemTimes[0][3])
+					}
+				}
+				//User doesnt have time before first scheduled appointment
+				if (currentDayScheduleItemTimes[1]) {
+					console.log('second item detected');
+					//if start of second item > start of first item && end of second item < end of first item
+					if (currentDayScheduleItemTimes[1][0] > currentDayScheduleItemTimes[0][0] && currentDayScheduleItemTimes[1][1] < currentDayScheduleItemTimes[0][1]) {
+						console.log('intertwined events');
+						return
+					}
+					if ((currentDayScheduleItemTimes[1][0] - 1) - (currentDayScheduleItemTimes[0][1] + 1) >= maxHoursPerDay) {
+						setAllAgendaEvents(day, wakeUpTime, 0, (wakeUpTime + maxHoursPerDay + 2), 0)
+					}
+					//if start of second item and end of first item difference >= 2
+					if ((currentDayScheduleItemTimes[1][0] - 1) - (currentDayScheduleItemTimes[0][1] + 1) >= 1 && (currentDayScheduleItemTimes[1][0] - 1) - (currentDayScheduleItemTimes[0][1] + 1) <= maxHoursPerDay) {
+						//If there is 2 hours of time between first and second scheduled appointment
+						console.log('schedule 0 - 1', currentDayScheduleItemTimes[1][0], currentDayScheduleItemTimes[0][1]);
+						setAllAgendaEvents(day, currentDayScheduleItemTimes[0][1], currentDayScheduleItemTimes[0][2], (currentDayScheduleItemTimes[1][0]), currentDayScheduleItemTimes[1][3])
+					}
+					// else {
+					// 	console.log('els');
+					// 	return
+					// }
+				}
+				//User doesnt have time before first scheduled appointment
+				if (currentDayScheduleItemTimes[2]) {
+					console.log('second item detected');
+					//if start of second item > start of first item && end of second item < end of first item
+					if (currentDayScheduleItemTimes[2][0] > currentDayScheduleItemTimes[1][0] && currentDayScheduleItemTimes[2][1] < currentDayScheduleItemTimes[1][1]) {
+						console.log('intertwined events');
+						return
+					}
+					//if start of second item and end of first item difference >= 2
+					if ((currentDayScheduleItemTimes[2][0] - 1) - (currentDayScheduleItemTimes[1][1] + 1) >= 1) {
+						//If there is 2 hours of time between first and second scheduled appointment
+						console.log('schedule 1 - 2', currentDayScheduleItemTimes[2][0], currentDayScheduleItemTimes[1][1]);
+						setAllAgendaEvents(day, currentDayScheduleItemTimes[1][1], currentDayScheduleItemTimes[1][2], (currentDayScheduleItemTimes[2][0]), currentDayScheduleItemTimes[2][3])
+					}
+					// else {
+					// 	return
+					// }
+				}
+
+				// if the ending time of the last item in agenda has a few hours until sleeptime
+				if (currentDayScheduleItemTimes.length > -1) {
+					if ((sleepTime - 1) - currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1] >= 2) {
+						// console.log('things');
+						let maxEndAfterStart = sleepTime;
+
+						if ((sleepTime - 1) - currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1] > maxHoursPerDay) {
+							maxEndAfterStart = currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1] + maxHoursPerDay
+						}
+						setAllAgendaEvents(day, currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1], currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][3], maxEndAfterStart, 0)
+					}
+				}
+				else {
+					//user doesnt have anything is his agenda for today
+					console.log(day, wakeUpTime, 0, (wakeUpTime + maxHoursPerDay), 0);
+					setAllAgendaEvents(day, wakeUpTime, 0, (wakeUpTime + maxHoursPerDay), 0)
+				}
+
+			}
+		}
+		// if (document.querySelectorAll(`[data-day='${startToDate.format('D')}']`)[0]) {
+		// 	const currentDayColumn = document.querySelectorAll(`[data-day='${startToDate.format('D')}']`)[0]
+		// 	if (!currentDayColumn.hasChildNodes) {
+		// 		setAllAgendaEvents(day, wakeUpTime, 0, (wakeUpTime + maxHoursPerDay), 0)
+		// 	}
+		// }
+
+		day++
+		console.log('deeeeeeeeeeej', day);
+		maxHoursPerDayForDeadline = maxHoursPerDay
 	}
 }
 
 function popupForEventClick(event) {
 	// this.removeEventListener('click', popupForEventClick)
-    const parent = document.querySelector('[data-show-popup]');
+	const parent = event.target.parentElement;
 
     if(parent.getAttribute('data-show-popup') === 'false') {
         parent.setAttribute('data-show-popup', 'true');
@@ -500,7 +789,7 @@ function popupForEventClick(event) {
             parent.appendChild(popupMenu)
 
             const popupParent = event.target.parentElement;
-            const popup = popupParent.querySelector('.item-popup');
+            const popup = parent.querySelector('.item-popup');
             const replan = document.createElement('button');
             const cancel = document.createElement('button');
             replan.textContent = "Replan";
@@ -519,9 +808,17 @@ function popupForEventClick(event) {
 
 }
 
-function replanEvent(element) {
-	console.log(element);
-    // element.addEventListener('click', popupForEventClick)
+function replanEvent(event) {
+	console.log(event);
+
+	showHidePopup(replanOverlay)
+	document.querySelector('#replan-confirmed').addEventListener('click', function () {
+		showHidePopup(replanOverlay)
+		TweenMax.to(event.target.parentElement.parentElement.parentElement, 0.4, {
+			opacity: 0,
+			ease: Quint.easeOut
+		});
+	})
 }
 
 //Adds calendar item to google calendar
@@ -594,64 +891,6 @@ function addANewItem( obj ) {
 
 }
 
-/*
-	PSEUDO FUNCTION - CREATE DEADLINE
-
-	// Get:  
-	// - deadline title				(Project EMT)
-	// - deadline end date				(14-01-2017)
-	// - deadline hours				(60)
-
-	Get:
-	// - on a day maximum hours		
-		// - sleep time - wake up time	(23:00 - 08:00)
-	- maximum work hours at once	(3)
-	// - current schedule				
-		// - amount of used/set hours	(school, self added, work)
-	- exceptions					(i don't work from 18:00 - 19:00 and not on sundays)
-	// - days until deadline: (deadline end date - current date) in days
-	// - available hours = (deadline end date * maximum hours) - (days until deadline * current schedule hours)
-
-	// Set:
-	// - Prophecy schedule = select 'current day' -> get all scheduled items -> get startTime and endTime
-	// 	[startTime, endTime, startTime, endTime, ...]
-	// 	between first endTime + 1hour & startTime - 1hour calc hourly difference if >= 1 add Prophecy schedule
-	// - time between wake up and first scheduled				(08:00 - 09:30)
-	// - time past first scheduled and second scheduled		(09:30 - 12:30)
-	// - etc.													(^...)
-	// - between each set, calculate if set hours >= deadline hours
-
-	Add:
-	- Click event to remove set schedule					('replan', 'prompt: why remove?' + options)
-		- If: remove was of added schedule (which should be saved)
-			calculate remaining hours, replan schedule		(save change + replan different date)
-
-	// Custom settings for each project:
-		// - Hour break after scheduled school, work, self
-		// - Wake up time, sleep time
-		// - Max amount on project per day
-
-	Events:
-		- Click event to remove set schedule					('replan', 'prompt: why remove?' + options)
-		- If: remove was of added schedule (which should be saved)
-			calculate remaining hours, replan schedule		(save change + replan different date)
-		- Webapp:
-			- Set install after first project
-			- Push notifications 
-				- Everytime a planned event is 1 hour away "Work on ... in an hour! :)", ability to hide messages for ever and re-enable
-				- Everytime a planned event has ended "Did you work on your project?", ability to hide messages for ever and re-enable
-					- Yes / No
-	Database:
-		- Get start / end time of item that was replanned
-		- Get day of item that was replanned
-		- Get input of push notification, log "Yes / No" on which day and start + end time of event
-*/
-
-/* 
-	Select current day
-		Select all agenda items, startTime, endTime
-			add startTime / endTime to array
-*/
 const deadlineSubmit = document.querySelector('.deadline-submit');
 const deadlineTitle = document.querySelector('#deadline-title');
 const deadlineEndDate = document.querySelector('#deadline-enddate');
@@ -659,16 +898,16 @@ const deadlineHours = document.querySelector('#deadline-hours');
 const deadLineParameters = [];
 deadlineSubmit.addEventListener('click', getDeadline)
 
-let wakeUpTime = 5; //get input[name="wakeUpTime"].value
+let wakeUpTime = 6; //get input[name="wakeUpTime"].value
 let sleepTime = 23; //get input[name="sleepTime"].value
-let maxHoursPerDay = 4; //get input[name="maxHours"].value
+let maxHoursPerDay = 8; //get input[name="maxHours"].value
 // let setMaximalDateEvents = new Date();
 // setMaximalDateEvents.setDate(setMaximalDateEvents.getDate() + (365 / 4))
 
 function getEventsBeforeDeadline(_deadlineEndDate) {
 	const newDeadlineDate = new Date(_deadlineEndDate)
 	const tomorrow = new Date()
-	tomorrow.setDate(tomorrow.getDate() + 1)
+	// tomorrow.setDate(tomorrow.getDate() + 1)
 
 	gapi.client.calendar.calendarList.list({
 		'calendarId': 'secondary',
@@ -721,8 +960,13 @@ function getEventsBeforeDeadline(_deadlineEndDate) {
 						}
 						// console.log(event.summary, when);
 						allCalendarEvents.push(event)
+						objectToElementHolder(event)
 					}
-					getStartEndOfEvents()
+					console.log('added all to object element aka #elementHolder');
+					console.log('now making things');
+					makeThings()
+					
+					// getStartEndOfEvents()
 				} else {
 					appendPre('No upcoming events found.')
 				}
@@ -746,14 +990,17 @@ function getMinutesOfTime(time) {
 	return minute
 }
 
+
+let previousDay;
+let previousMaxHoursPerDayForDeadline
 function setAllAgendaEvents(day, start, startMinutes, end, endMinutes ) {
+	console.log('setAllAgendaEvents ', day, start, startMinutes, end, endMinutes);
 	const time = moment().add(day, 'day').hour(wakeUpTime).minute(0)
 	const startToDate = moment(new Date(time))
 	console.log('starttodate', startToDate.format('D'));
-	const currentDaySchedule = document.querySelector(`[data-day='${day}']`)
 
 	maxHoursPerDayForDeadline = maxHoursPerDay;
-	
+
 	// Set margin for wake up time and bed time
 	// if (currentDaySchedule.querySelectorAll('[data-begin]')[0]) {
 	// 	end -= 1
@@ -764,12 +1011,16 @@ function setAllAgendaEvents(day, start, startMinutes, end, endMinutes ) {
 
 	// console.log('check', day, start, startMinutes, end, endMinutes);
 	// console.log('start of event', start);
-	let startTime = moment().day(day).hour(start + 1).minute(startMinutes)
-	let startTimeHHmm = startTime.format('HH:mm')
-	let endTime = moment().day(day).hour(end).minute(endMinutes)
-	let endTimeHHmm = endTime.format('HH:mm')
+	let startTime = moment().add(day, 'day').hour(start + 1).minute(startMinutes)
+	let endTime = moment().add(day, 'day').hour(end - 1).minute(endMinutes)
 
-	console.log(currentDaySchedule);
+	// let startTimeAsNumber = timeToHourAndDecimal(startTime.format('HH:mm'))
+	// let endTimeAsNumber = timeToHourAndDecimal(endTime.format('HH:mm'))
+
+	// if (endTimeAsNumber - startTimeAsNumber > maxHoursPerDayForDeadline ) {
+	// 	endTime = startTime.add(maxHoursPerDayForDeadline, 'hours')
+	// }
+	
 	const o = {
 		summary: `Working on ${deadLineParameters[0]}`,
 		start: {
@@ -792,23 +1043,36 @@ function setAllAgendaEvents(day, start, startMinutes, end, endMinutes ) {
 	// endTime = o.end.dateTime
 	// console.log(startTime, endTime);
 	const timeOfEvent = Math.abs(startTime.diff(endTime, 'hours', true))
-	// console.log('time of event', timeOfEvent);
+	console.log('time of event', timeOfEvent);
 	hoursNeededForDeadline -= timeOfEvent
 	maxHoursPerDayForDeadline -= timeOfEvent
 
 	// const timeOfEvent = timeToHourAndDecimal((end - (start + 1)) + ':' + (endMinutes - startMinutes));
 	console.log('hoursNeededForDeadline after ', hoursNeededForDeadline);
 	// console.log('event added: ', o);
-	if (maxHoursPerDayForDeadline <= 0) {
+	if (day === previousDay) {
+		console.log(day, previousDay);
+		previousMaxHoursPerDayForDeadline -= timeOfEvent;
+	}
+	else {
+		previousMaxHoursPerDayForDeadline = maxHoursPerDayForDeadline;
+	}
+
+	if (maxHoursPerDayForDeadline <= 0 || previousMaxHoursPerDayForDeadline <= 0) {
+		console.log('maxHours', day, maxHoursPerDayForDeadline);
 		day++
 	}
+
+	previousDay = day
+
 	if (hoursNeededForDeadline <= 0 /*|| maxHoursPerDayForDeadline <= 0*/) {
 		return
 	}
 	else {
-		console.log(o);
+		console.log('made deadline object', o);
 		allCreatedDeadlineObjects.push(o)
-		console.log(allCreatedDeadlineObjects);
+		console.log(hoursNeededForDeadline);
+		objectToElementHolder(o)
 		addCalendarItem(o)
 	}
 }
@@ -818,218 +1082,91 @@ function flatten(arr) {
 	}, []);
 }
 
-function getStartEndOfEvents() {
-	// allCalendarEvents.forEach(function(event) {
-	// 	// console.log(event);
-	// 	// console.log(event.summary, event.start.dateTime, event.end.dateTime);
-		
-	// 	moment(event.start.dateTime).subtract(1, 'hour')
-	// })
-	//Sorts the living shit out of this array, ASC from start date
-	allCalendarEvents.sort(function (a, b) {
-		return new Date(a.start.dateTime) - new Date(b.start.dateTime);
-	});
+// function getStartEndOfEvents() {
+// 	//Sorts the living shit out of this array, ASC from start date
+// 	allCalendarEvents.sort(function (a, b) {
+// 		return new Date(a.start.dateTime) - new Date(b.start.dateTime);
+// 	});
 	
-	console.log(allCalendarEvents);
-	createDeadlineObjects()
-}
+// 	console.log(allCalendarEvents);
+// 	createDeadlineObjects()
+// }
+
 let allCreatedDeadlineObjects = []
-function createDeadlineObjects() {
-	/*
-	Get wake up time
-	Get sleep time
-	Get all start and end times of allCalendarEvents
-	Add hour margin to each value
-	Get difference, wake up & first object
-	Set max hours
-	Add item
-	Save added items to localStorage or database
 
-	Make previous and next a function not a new page
-	*/
-	let currentDay = 1
-	let time = moment().add(currentDay, 'day').hour(wakeUpTime).minute(0)
-	let startToDate = moment(new Date(time))
-	const currentDaySchedule = document.querySelector(`[data-day='${startToDate.format('D')}']`)
-	// const currentDaySchedule = allCalendarEvents[currentDay]
-	maxHoursPerDayForDeadline = maxHoursPerDay;
-	//HoursNeedForDeadline is declared
-	wakeUpTime = wakeUpTime + 1
-	sleepTime = sleepTime - 1
+// function createDeadlineObjects() {
+// 	/*
+// 	Get wake up time
+// 	Get sleep time
+// 	Get all start and end times of allCalendarEvents
+// 	Add hour margin to each value
+// 	Get difference, wake up & first object
+// 	Set max hours
+// 	Add item
+// 	Save added items to localStorage or database
 
-	// console.log(currentDay);
-	// console.log(time);
-	// console.log(startToDate);
-	console.log(currentDaySchedule);
-	let dayOfEvents
-	//Difference between startDate and deadline
-	let daysRemaining = Math.abs(Math.floor(time.diff(moment(deadLineParameters[1]), 'days', true)))
-	console.log('days remaining', daysRemaining);
-	for (let i = 1; i < (daysRemaining + 1); i++) {
-		allCalendarEvents.forEach((event, index) => {
-			dayOfEvents = moment().add(index, 'day').hour(wakeUpTime).minute(0)
-			dayOfEvents = dayOfEvents.format('D')
+// 	Make previous and next a function not a new page
+// 	*/
+// 	let currentDay = 1
+// 	let time = moment().add(currentDay, 'day').hour(wakeUpTime).minute(0)
+// 	let startToDate = moment(new Date(time))
+// 	const currentDaySchedule = document.querySelector(`[data-day='${startToDate.format('D')}']`)
+// 	// const currentDaySchedule = allCalendarEvents[currentDay]
+// 	maxHoursPerDayForDeadline = maxHoursPerDay;
+// 	//HoursNeedForDeadline is declared
+// 	wakeUpTime = wakeUpTime + 1
+// 	sleepTime = sleepTime - 1
 
-			let when = event.start.dateTime
-			if (!when) {
-				when = event.start.date
-			}
-			let whenEnd = event.end.dateTime
-			if (!whenEnd) {
-				whenEnd = event.end.date
-			}
-			const googleCalendarEventDateConverted = moment(when).format('YYYY-MM-DD')
-			// console.log(googleCalendarEventDateConverted, startToDate.format('YYYY-MM-DD'));
-			let eventTimeStart = event.start.dateTime
-			let eventTimeEnd = event.end.dateTime
-			eventTimeStart = moment(event.start.dateTime).format('HH:mm')
-			eventTimeEnd = moment(event.end.dateTime).format('HH:mm')
+// 	// console.log(currentDay);
+// 	// console.log(time);
+// 	// console.log(startToDate);
+// 	console.log(currentDaySchedule);
+// 	let dayOfEvents
+// 	//Difference between startDate and deadline
+// 	let daysRemaining = Math.abs(Math.floor(time.diff(moment(deadLineParameters[1]), 'days', true)))
+// 	console.log('days remaining', daysRemaining);
+// 	for (let i = 1; i < (daysRemaining + 1); i++) {
+// 		allCalendarEvents.forEach((event, index) => {
+// 			dayOfEvents = moment().add(index, 'day').hour(wakeUpTime).minute(0)
+// 			dayOfEvents = dayOfEvents.format('D')
 
-			if (startToDate === googleCalendarEventDateConverted) {
-				console.log('date has event', event);
-				//this date has an event
-				let eventTimeStart = event.start.dateTime
-				let eventTimeEnd = event.end.dateTime
-				eventTimeStart = moment(event.start.dateTime).format('HH:mm')
-				eventTimeEnd = moment(event.end.dateTime).format('HH:mm')
-				console.log(eventTimeStart, eventTimeEnd);
-				const agendaItemStartMinutes = getMinutesOfTime(eventTimeStart)
-				const agendaItemEndMinutes = getMinutesOfTime(eventTimeEnd)
-				//When there is more than 3 hours available between wake up and first appointment
-				if (wakeUpTime - timeToHourAndDecimal(eventTimeStart) < 3 ) {
-					// const o = {
-					// 	summary: `Working on ${deadLineParameters[0]}`,
-					// 	start: {
-					// 		// date: moment().add( day, 'day' )
-					// 		dateTime: moment().add(currentDay, 'day').hour(wakeUpTime).minute(0)
-					// 	},
-					// 	end: {
-					// 		dateTime: moment().add(currentDay, 'day').hour((wakeUpTime + (timeToHourAndDecimal(eventTimeStart) - 1))).minute(0)
-					// 	},
-					// 	organizer: {
-					// 		email: ''
-					// 	},
-					// 	description: 'Added by Prophecy Calendar',
-					// 	colorId: 9,
-					// 	status: 'confirmed'
-					// }
-					// setAllAgendaEvents(currentDay, eventTimeStart, agendaItemStartMinutes, eventTimeEnd, agendaItemEndMinutes)
-				}
-			}
-			else {
-				//no events this date
-				// const o = {
-				// 	summary: `Working on ${deadLineParameters[0]}`,
-				// 	start: {
-				// 		// date: moment().add( day, 'day' )
-				// 		dateTime: moment().add(currentDay, 'day').hour(wakeUpTime).minute(0)
-				// 	},
-				// 	end: {
-				// 		dateTime: moment().add(currentDay, 'day').hour((wakeUpTime + maxHoursPerDayForDeadline)).minute(0)
-				// 	},
-				// 	organizer: {
-				// 		email: ''
-				// 	},
-				// 	description: 'Added by Prophecy Calendar',
-				// 	colorId: 9,
-				// 	status: 'confirmed'
-				// }
-				setAllAgendaEvents(dayOfEvents, wakeUpTime, 0, wakeUpTime + maxHoursPerDayForDeadline, 0)
-			}
-		})
+// 			let when = event.start.dateTime
+// 			if (!when) {
+// 				when = event.start.date
+// 			}
+// 			let whenEnd = event.end.dateTime
+// 			if (!whenEnd) {
+// 				whenEnd = event.end.date
+// 			}
+// 			const googleCalendarEventDateConverted = moment(when).format('YYYY-MM-DD')
+// 			// console.log(googleCalendarEventDateConverted, startToDate.format('YYYY-MM-DD'));
+// 			let eventTimeStart = event.start.dateTime
+// 			let eventTimeEnd = event.end.dateTime
+// 			eventTimeStart = moment(event.start.dateTime).format('HH:mm')
+// 			eventTimeEnd = moment(event.end.dateTime).format('HH:mm')
 
-		// if (maxHoursPerDayForDeadline <= 0) {
-		// 	currentDay++
-		// }
-		// if (hoursNeededForDeadline <= 0 /*|| maxHoursPerDayForDeadline <= 0*/) {
-		// 	return
-		// }
-		// else {
-		// 	// addCalendarItem(o)
-		// 	console.log(o);
-		// }
-
-
-		// const o = {
-		// 	summary: `Working on ${deadLineParameters[0]}`,
-		// 	start: {
-		// 		// date: moment().add( day, 'day' )
-		// 		dateTime: moment().add(currentDay, 'day').hour(start + 1).minute(startMinutes)
-		// 	},
-		// 	end: {
-		// 		dateTime: moment().add(currentDay, 'day').hour(end).minute(endMinutes)
-		// 	},
-		// 	organizer: {
-		// 		email: ''
-		// 	},
-		// 	description: 'Added by Prophecy Calendar',
-		// 	colorId: 9,
-		// 	status: 'confirmed'
-		// }
-
-		// const startTime = o.start.dateTime
-		// const endTime = o.end.dateTime
-		// const timeOfEvent = Math.abs(startTime.diff(endTime, 'hours', true))
-		// hoursNeededForDeadline -= timeOfEvent
-		// maxHoursPerDayForDeadline -= timeOfEvent
-
-	}
-
-// const 	deadline = moment( new Date( deadLineParameters[ 1 ] ) ),
-// 			daysRemaining = deadline.diff(moment(), 'days'),
-// 			hoursPerDay = Number( deadLineParameters[ 2 ] ) / daysRemaining
-
-//     		day = 1,
-// 			leftOver = 0;
-	// for (let i = 0; i < daysRemaining; i++) {
-	// 	const time = moment().add(day, 'day').hour(wakeUpTime).minute(0)
-	// 	const startToDate = moment(new Date(time))
-	// 	const currentDaySchedule = document.querySelector(`[data-day='${startToDate.format('D')}']`)
-
-	// 	let hours
-	// 	if (leftOver !== 0) {
-	// 		hours = hoursPerDay + leftOver
-	// 		leftOver = 0
-	// 	} else {
-	// 		hours = hoursPerDay
-	// 	}
-
-
-	// const o = {
-	// 	summary: `Working on ${deadLineParameters[0]}`,
-	// 	start: {
-	// 		// date: moment().add( day, 'day' )
-	// 		dateTime: moment().add(currentDay, 'day').hour(start + 1).minute(startMinutes)
-	// 	},
-	// 	end: {
-	// 		dateTime: moment().add(currentDay, 'day').hour(end).minute(endMinutes)
-	// 	},
-	// 	organizer: {
-	// 		email: ''
-	// 	},
-	// 	description: 'Added by Prophecy Calendar',
-	// 	colorId: 9,
-	// 	status: 'confirmed'
-	// }
-
-	// const startTime = o.start.dateTime
-	// const endTime = o.end.dateTime
-	// const timeOfEvent = Math.abs(startTime.diff(endTime, 'hours', true))
-	// hoursNeededForDeadline -= timeOfEvent
-	// maxHoursPerDayForDeadline -= timeOfEvent
-
-	// if (maxHoursPerDayForDeadline <= 0) {
-	// 	currentDay++
-	// }
-	// if (hoursNeededForDeadline <= 0 /*|| maxHoursPerDayForDeadline <= 0*/) {
-	// 	return
-	// }
-	// else {
-	// 	// addCalendarItem(o)
-	// 	console.log(o);
-	// }
-
-}
+// 			if (startToDate === googleCalendarEventDateConverted) {
+// 				console.log('date has event', event);
+// 				//this date has an event
+// 				let eventTimeStart = event.start.dateTime
+// 				let eventTimeEnd = event.end.dateTime
+// 				eventTimeStart = moment(event.start.dateTime).format('HH:mm')
+// 				eventTimeEnd = moment(event.end.dateTime).format('HH:mm')
+// 				console.log(eventTimeStart, eventTimeEnd);
+// 				const agendaItemStartMinutes = getMinutesOfTime(eventTimeStart)
+// 				const agendaItemEndMinutes = getMinutesOfTime(eventTimeEnd)
+// 				//When there is more than 3 hours available between wake up and first appointment
+// 				if (wakeUpTime - timeToHourAndDecimal(eventTimeStart) < 3 ) {
+// 					// setAllAgendaEvents(currentDay, eventTimeStart, agendaItemStartMinutes, eventTimeEnd, agendaItemEndMinutes)
+// 				}
+// 			}
+// 			else {
+// 				//no events this date
+// 				setAllAgendaEvents(dayOfEvents, wakeUpTime, 0, wakeUpTime + maxHoursPerDayForDeadline, 00)
+// 			}
+// 		})
+// 	}
+// }
 
 // New re-written function
 function getDeadline() {
@@ -1038,7 +1175,7 @@ function getDeadline() {
 	// hoursNeededForDeadline = deadLineParameters[2]
 	// console.log(hoursNeededForDeadline)
 	// //Hides the deadlineOverlay popup
-	// showHidePopup(deadlineOverlay)
+	showHidePopup(deadlineOverlay)
 
 	deadLineParameters.push(deadlineTitle.value, deadlineEndDate.value, deadlineHours.value)
 	hoursNeededForDeadline = deadLineParameters[2]
@@ -1051,90 +1188,6 @@ function getDeadline() {
 
 	getEventsBeforeDeadline(deadlineEndDate.value)
 
-	// const 	deadline = moment( new Date( deadLineParameters[ 1 ] ) ),
-	// 		daysRemaining = deadline.diff(moment(), 'days'),
-	// 		hoursPerDay = Number( deadLineParameters[ 2 ] ) / daysRemaining
-
-	//     day = 1,
-	// 	leftOver = 0;
-	// for (let i = 0; i < daysRemaining; i++) {
-	// 	const time = moment().add(day, 'day').hour(wakeUpTime).minute(0)
-	// 	const startToDate = moment(new Date(time))
-	// 	const currentDaySchedule = document.querySelector(`[data-day='${startToDate.format('D')}']`)
-		
-	// 	let hours
-	// 	if (leftOver !== 0) {
-	// 		hours = hoursPerDay + leftOver
-	// 		leftOver = 0
-	// 	} else {
-	// 		hours = hoursPerDay
-	// 	}
-	// 	if (currentDaySchedule && currentDaySchedule.children.length > 0) {
-	// 		const firstBegin = Number(currentDaySchedule.children[0].getAttribute('data-begin')),
-	// 			maxEnd = Number(wakeUpTime) + hoursPerDay
-	// 		// if (maxEnd > firstBegin) {
-	// 		// 	leftOver = hours - (firstBegin - Number(wakeUpTime))
-	// 		// 	hours = firstBegin - Number(wakeUpTime)
-	// 		// }
-	// 	}
-
-	// 	//All items of today
-	// 	const currentDayScheduleItems = [];
-	// 	//Cant get currentDaySchedule past this week
-	// 	if (currentDaySchedule) {
-	// 		currentDayScheduleItems.push(currentDaySchedule.querySelectorAll('.item'))
-	// 	}
-	// 	//fix for missing days of next weeks
-	// 	if (currentDayScheduleItems <= 0) {
-	// 		return
-	// 	}
-	// 	const currentDayScheduleItemTimes = [];
-	// 	console.log('currentdayscheduleitems', currentDayScheduleItems[0]);
-	// 	//Makes an array of your scheduled times
-	// 	currentDayScheduleItems[0].forEach((agendaItem, i) => {
-	// 		console.log('agenda item =', agendaItem);
-	// 		const agendaItemStart = timeToHourAndDecimal(agendaItem.getAttribute('data-begin'))
-	// 		const agendaItemEnd = timeToHourAndDecimal(agendaItem.getAttribute('data-end'))
-	// 		const agendaItemStartMinutes = getMinutesOfTime(agendaItem.getAttribute('data-begin'))
-	// 		const agendaItemEndMinutes = getMinutesOfTime(agendaItem.getAttribute('data-end'))
-	// 		currentDayScheduleItemTimes.push(Array(agendaItemStart, agendaItemEnd, agendaItemStartMinutes, agendaItemEndMinutes))
-	// 	})
-
-	// 	//If time of wake up and first scheduled item difference bigger than 3 hour, plan in 1 hour, 1hour for waking up 1hour for travel
-	// 	if (currentDayScheduleItemTimes[0]) {
-	// 		if (currentDayScheduleItemTimes[0][0] - (wakeUpTime + 1) >= 2) {
-	// 			//If there is 2 hours of time between first and second scheduled appointment
-	// 			setAllAgendaEvents(day, wakeUpTime, 0, currentDayScheduleItemTimes[0][0], currentDayScheduleItemTimes[0][2])
-	// 		}
-	// 		//User doesnt have time before first scheduled appointment
-	// 		if (currentDayScheduleItemTimes[1]) {
-	// 			if (currentDayScheduleItemTimes[1][0] - currentDayScheduleItemTimes[0][0] >= 2) {
-	// 				//If there is 2 hours of time between first and second scheduled appointment
-	// 				setAllAgendaEvents(day, currentDayScheduleItemTimes[0][0], currentDayScheduleItemTimes[0][2], currentDayScheduleItemTimes[1][0], currentDayScheduleItemTimes[1][2])
-	// 			}
-	// 			else {
-	// 				return
-	// 			}
-	// 		}
-	// 		//if the ending time of the last item in agenda has a few hours untill sleeptime
-	// 		if ( sleepTime - currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1] >= 2) {
-	// 			// console.log('things');
-	// 			let maxEndAfterStart = sleepTime - 1;
-
-	// 			if ( sleepTime - currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1] > maxHoursPerDay ) {
-	// 				maxEndAfterStart = currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1] + maxHoursPerDay
-	// 			} 
-	// 			setAllAgendaEvents(day, currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][1], currentDayScheduleItemTimes[currentDayScheduleItemTimes.length - 1][3], maxEndAfterStart, 0)
-	// 		}
-
-	// 	}
-	// 	else {
-	// 		//user doesnt have anything is his agenda for today
-	// 		setAllAgendaEvents(day, wakeUpTime, 0, (wakeUpTime + maxHoursPerDay), 0) 
-	// 	}
-	// 	day++
-	// 	maxHoursPerDayForDeadline = maxHoursPerDay
-	// }
 }
 
 let deadlineOverlayGroup = [];
@@ -1158,6 +1211,15 @@ console.log(preferenceOverlayGroup);
 preferenceOverlayGroup.forEach(function (elem) {
 	elem.addEventListener('click', function () {
 		showHidePopup(preferenceOverlay);
+	});
+})
+
+let replanOverlayGroup = [];
+replanOverlayGroup.push(replanButton, replanOverlayClose, replanOverlayBackground)
+console.log(replanOverlayGroup);
+replanOverlayGroup.forEach(function (elem) {
+	elem.addEventListener('click', function () {
+		showHidePopup(replanOverlay);
 	});
 })
 

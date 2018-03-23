@@ -16,7 +16,7 @@
     "background_color": "#0057e7",
     "display": "standalone",
     "short_name": "Prophecy",
-    "start_url": "/?utm_source=homescreen",
+    "start_url": ".",
     "orientation":"any",
     "lang":"en-US",
     "dir": "ltr",

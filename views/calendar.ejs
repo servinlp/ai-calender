@@ -51,11 +51,8 @@
 
 		<div class="agenda_time-row">
 			<div data-day="<%= week[ 0 ] %>" data-date="<%= date[ 0 ] %>" class="time-column <%= week[ 0 ] === today ? 'active' : '' %>">
-				<!-- <div class="item item-half" style="height: calc((200vh / 23) * 3);top: calc((200vh / 23) * 3);background-color: #0057e7; width:42.5%;">ET artificial intelligence balbal balbal blbalba lbal lbalba lba</div>
-				<div class="item item-half" style="height: calc((200vh / 23) * 3);top: calc((200vh / 23) * 3);background-color: #0057e7; width:42.5%;">ET artificial intelligence balbal balbal blbalba lbal lbalba lba</div> -->
 			</div>
 			<div data-day="<%= week[ 1 ] %>" data-date="<%= date[ 1 ] %>" class="time-column <%= week[ 1 ] === today ? 'active' : '' %>">
-				<!-- <div class="item" style="height: calc((200vh / 23) * 5);top: calc((200vh / 23) * 6);background-color: #0057e7; width:90%;">ET artificial intelligence balbal balbal blbalba lbal lbalba lba</div> -->
 			</div>
 			<div data-day="<%= week[ 2 ] %>" data-date="<%= date[ 2 ] %>" class="time-column <%= week[ 2 ] === today ? 'active' : '' %>"></div>
 			<div data-day="<%= week[ 3 ] %>" data-date="<%= date[ 3 ] %>" class="time-column <%= week[ 3 ] === today ? 'active' : '' %>"></div>
@@ -67,8 +64,10 @@
 </main>
 <section class="call-to-action">
 	<!-- Change these links to dynamic JS buttons -->
-	<a href="/?week=<%= prevWeek %>" class="prev">Previous</a>
-	<a href="/?week=<%= nextWeek %>" class="next">Next</a>
+	<!-- <a href="/?week=<%= prevWeek %>" class="prev">Previous</a>
+	<a href="/?week=<%= nextWeek %>" class="next">Next</a> -->
+	<button class="prev">Previous</button>
+	<button class="next">Next</button>
 	<div class="menu">
 		<ul class="menu-items">
 			<li class="menu-item">
@@ -131,15 +130,28 @@
 	</div>
 </section>
 
+<section data-show="false" class="overlay replan-overlay">
+	<div class="overlay-background"></div>
+	<div class="overlay__modal">
+		<span id="close">X</span>
+		<h2>Replan</h2>
+		<p>Are you sure you want to replan this task?</p>
+		<button id="replan-confirmed" class="replan-button">Yes</button>
+		<button id="replan-button" class="replan-button">No!</button>
+	</div>
+</section>
+
 <section data-show="false" class="overlay preference-overlay">
 	<div class="overlay-background"></div>
 	<div class="overlay__modal">
 		<span id="close">X</span>
 		<h2>Preference</h2>
+		<p>Preferences are used to determine the best possible planning for you.</p>
+		<p>Prophecy will learn about your schedule and update things if needed, right here.</p>
 		<form action="">
 			<label for="wakeUpTime">
 				Wake Up Time
-				<input name="wakeUpTime" type="time" value="08:00" pattern="[0-9]{2}:[0-9]{2}" placeholder="08:00">
+				<input name="wakeUpTime" type="time" value="06:00" pattern="[0-9]{2}:[0-9]{2}" placeholder="08:00">
 			</label>
 			<label for="sleepTime">
 				Bed Time
@@ -147,7 +159,7 @@
 			</label>
 			<label for="maxHours">
 				Maximum hours per day
-				<input name="maxHours" type="number" placeholder="4">
+				<input name="maxHours" type="number" placeholder="8">
 			</label>
 			<label for="alwaysBusy">
 				Always busy
@@ -163,6 +175,7 @@
 					</select>
 					<input name="start" type="time" value="12:00" pattern="[0-9]{2}:[0-9]{2}" placeholder="08:00">
 					<input name="end" type="time" value="14:00" pattern="[0-9]{2}:[0-9]{2}" placeholder="12:00">
+					<span style="margin-left: 2em;">X</span>
 				</fieldset>
 				<button id="addAlwaysBusy">+</button>
 			</label>

@@ -47,7 +47,6 @@ var gulp = require('gulp');
 var nodemon = require('gulp-nodemon');  
 var sass = require('gulp-ruby-sass');  
 var autoprefixer = require('gulp-autoprefixer');  
-// var jshint = require('gulp-jshint');  
 var livereload = require('gulp-livereload');  
 
 gulp.task('styles', function() {  
@@ -58,28 +57,26 @@ gulp.task('styles', function() {
 });
 
 gulp.task('scripts', function() {  
-return gulp.src('public/*.js')
-	// .pipe(jshint('.jshintrc'))
-	// .pipe(jshint.reporter('default'))
+	return gulp.src('public/*.js')
 	.pipe(livereload());
 });
 gulp.task('ejs',function(){  
-    return gulp.src('views/*.ejs')
+	return gulp.src('views/*.ejs')
     .pipe(livereload());
 });
   
 gulp.task('watch', function() {  
-    livereload.listen();
-    gulp.watch('public/styles/*.scss', ['styles']);
-    gulp.watch('public/*.js', ['scripts']);
-    gulp.watch('views/*.ejs', ['ejs']);
+	livereload.listen();
+	gulp.watch('public/styles/*.scss', ['styles']);
+	gulp.watch('public/*.js', ['scripts']);
+	gulp.watch('views/*.ejs', ['ejs']);
 });
 
 gulp.task('server',function(){  
-    nodemon({
-        'script': 'app.js',
-        'ignore': 'public/*.js'
-    });
+	nodemon({
+		'script': 'app.js',
+		'ignore': 'public/*.js'
+	});
 });
 
 gulp.task('serve', ['server','watch']);  

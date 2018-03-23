@@ -33,9 +33,35 @@ Prophecy uses:
 And of course Prophecy is open source on GitHub.
 
 # To do
- - Improve self planning feature
- - Add more web app functions like:
-    - push notifications
-    - installation
-    - caching
+
+## Design
 - Create mobile friendly appearance
+- Responsive design
+- Splashpage
+- Preference window
+
+## Front end
+
+### JS
+- Split up JS files, new architecture
+- Improve self planning feature
+- Add more web app functions like:
+  - push notifications
+  - installation
+  - caching
+- Create 'time running out!' notification
+- Create priority per project
+
+### CSS
+- Create responsive design
+- Maybe switch to `display: grid;`
+
+### Animation
+- Animate everything.
+
+## Back-end
+- Offline usage (pouchDB)
+- Caching
+- Fetch Google Calendar events serverside via Express (API Key serverside)
+- Cross Device usage (pouchDB)
+- Save preferences, created events, priority
